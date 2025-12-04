@@ -8,9 +8,9 @@ const _inter = Inter({ subsets: ["latin"], display: "swap" })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "PakizaAccounts - হিসাব ব্যবস্থাপনা",
-  description: "বাংলাদেশের জন্য পেশাদার হিসাব ও আর্থিক ব্যবস্থাপনা সিস্টেম",
-  generator: "v0.app",
+  title: "PakizaAccounts - Accounting Software",
+  description: "Powerfull Accounting Software for Small Businesses",
+  generator: "Tahmid Afsar Shapno",
 }
 
 export default function RootLayout({

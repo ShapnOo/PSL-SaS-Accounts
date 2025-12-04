@@ -74,6 +74,15 @@ const menuItems: MenuItem[] = [
     ],
   },
   {
+    icon: CreditCard,
+    label: "Sales & Purchasing",
+    children: [
+      { label: "Invoices", href: "/invoice" },
+      { label: "Purchase", href: "/purchase" },
+      { label: "Inventory", href: "/inventory" },
+    ],
+  },
+  {
     icon: Landmark,
     label: "Bank Reconciliation",
     children: [
