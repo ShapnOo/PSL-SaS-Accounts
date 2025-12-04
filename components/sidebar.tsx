@@ -53,7 +53,7 @@ const menuItems: MenuItem[] = [
     label: "Chart of Accounts",
     children: [
       { label: "Chart of Accounts", href: "/chart-of-accounts" },
-      { label: "View Chart of Accounts", href: "/chart-of-accounts/list" },
+      { label: "Chart of Accounts List", href: "/chart-of-accounts/list" },
       { label: "Opening Balance", href: "/opening-balance" },
       { label: "Customer", href: "/chart-of-accounts/customer" },
     ],
@@ -274,7 +274,7 @@ export function Sidebar({ open, collapsed, onClose, onToggleCollapse }: SidebarP
           {!collapsed && (
             <>
               <p className="text-xs text-slate-500">
-                Powered by <span className="text-slate-900 font-semibold">PakizaAccounts</span>
+                UI Design by <span className="text-slate-900 font-semibold">Tahmid Afsar Shapno</span>
               </p>
               <p className="text-xs text-slate-400 mt-0.5">Version: 1.0.0</p>
             </>
