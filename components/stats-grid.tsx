@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card"
-import { BookOpen, FileText, Landmark, Receipt, Settings, Users } from "lucide-react"
+import { Landmark, TrendingDown, TrendingUp, Wallet, WalletCards } from "lucide-react"
 
 const tones = {
   blue: {
@@ -36,58 +36,42 @@ const tones = {
 
 const stats = [
   {
-    label: "Configuration",
-    value: 5,
-    note: "Financial periods, centers, locks",
-    badge: "Setup",
-    icon: Settings,
+    label: "Total Income",
+    value: 325_450,
+    note: "This month’s inflow",
+    badge: "Income",
+    icon: TrendingUp,
     tone: tones.blue,
   },
   {
-    label: "Chart of Accounts",
-    value: 284,
-    note: "Master + module wise COA",
-    badge: "Accounts",
-    icon: BookOpen,
-    tone: tones.indigo,
+    label: "Total Expense",
+    value: 214_980,
+    note: "This month’s outflow",
+    badge: "Expense",
+    icon: TrendingDown,
+    tone: tones.amber,
   },
   {
-    label: "Transactions",
-    value: 129,
-    note: "Vouchers this month",
-    badge: "Ops",
-    icon: Receipt,
-    tone: tones.emerald,
-  },
-  {
-    label: "Bank Reconciliation",
-    value: 12,
-    note: "Items pending match",
-    badge: "Bank",
-    icon: Landmark,
-    tone: tones.cyan,
-  },
-  {
-    label: "Reports",
-    value: 14,
-    note: "Ready-to-run statements",
-    badge: "Analytics",
-    icon: FileText,
+    label: "Total Account Payable",
+    value: 98_400,
+    note: "Due to vendors",
+    badge: "Payable",
+    icon: WalletCards,
     tone: tones.slate,
   },
   {
-    label: "Customers",
-    value: 86,
-    note: "Active customer ledgers",
-    badge: "CRM",
-    icon: Users,
-    tone: tones.amber,
+    label: "Total Account Receivable",
+    value: 142_300,
+    note: "Receivable from clients",
+    badge: "Receivable",
+    icon: Wallet,
+    tone: tones.indigo,
   },
 ]
 
 export function StatsGrid() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
       {stats.map((stat) => (
         <Card
           key={stat.label}

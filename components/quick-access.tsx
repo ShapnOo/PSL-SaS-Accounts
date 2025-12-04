@@ -1,3 +1,5 @@
+import Link from "next/link"
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 
@@ -10,8 +12,8 @@ const quickLinks = [
 
   // Chart of Accounts
   { label: "Chart of Accounts", category: "primary" },
+  { label: "Chart of Accounts List", category: "secondary" },
   { label: "Opening Balance", category: "secondary" },
-  { label: "Modulewise COA", category: "accent" },
 
   // Transaction
   { label: "Voucher List", category: "primary" },
@@ -36,6 +38,24 @@ const categoryStyles: Record<string, string> = {
   warning: "bg-amber-500 hover:bg-amber-600 text-white",
 }
 
+const linkMap: Record<string, string> = {
+  "Financial Period": "/financial-period",
+  "Cost Center": "/cost-center",
+  "New Voucher": "/new-voucher",
+  "Month Lock": "/month-lock",
+  "Chart of Accounts": "/chart-of-accounts",
+  "Chart of Accounts List": "/chart-of-accounts/list",
+  "Opening Balance": "/opening-balance",
+  "Voucher List": "/voucher-list",
+  "Journal List": "/journal-voucher",
+  "Bank Payment Voucher": "/bank-payment-voucher",
+  "Bank Received Voucher": "/bank-received-voucher",
+  "Cash Payment Voucher": "/cash-payment-voucher",
+  "Cash Received Voucher": "/cash-received-voucher",
+  "Bank Reconciliation": "/bank-reconciliation",
+  Reports: "/reports",
+}
+
 export function QuickAccess() {
   return (
     <Card className="border-border/40 shadow-sm">
@@ -48,9 +68,10 @@ export function QuickAccess() {
             <Button
               key={link.label}
               size="sm"
-              className={`${categoryStyles[link.category]} border-0 text-xs font-medium shadow-sm h-7 px-2.5`}
+              asChild
+              className={`${categoryStyles[link.category]} border-0 text-xs font-medium shadow-sm h-8 px-3 rounded-lg`}
             >
-              {link.label}
+              <Link href={linkMap[link.label] || "#"}>{link.label}</Link>
             </Button>
           ))}
         </div>

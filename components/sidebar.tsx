@@ -1,13 +1,27 @@
 "use client"
 
 import type { ComponentType } from "react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { BookOpen, ChevronRight, FileText, Landmark, LayoutDashboard, Receipt, Settings, X } from "lucide-react"
+import {
+  BookOpen,
+  ChevronRight,
+  CreditCard,
+  FileSearch,
+  FileText,
+  Landmark,
+  LayoutDashboard,
+  Plug,
+  Receipt,
+  Settings,
+  Shield,
+  ShieldCheck,
+  X,
+} from "lucide-react"
 
 interface SidebarProps {
   open: boolean
@@ -18,6 +32,8 @@ interface SidebarProps {
 
 type MenuChild = { label: string; href?: string }
 type MenuItem = { icon: ComponentType<{ className?: string }>; label: string; href?: string; children?: MenuChild[] }
+
+const STORAGE_KEY = "sidebar-open-items"
 
 const menuItems: MenuItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/" },
@@ -36,11 +52,9 @@ const menuItems: MenuItem[] = [
     icon: BookOpen,
     label: "Chart of Accounts",
     children: [
-      { label: "Chart of Accounts" },
-      { label: "View Chart of Accounts" },
-      { label: "Opening Balance" },
-      { label: "Modulewise COA" },
-      { label: "Module wise COA List" },
+      { label: "Chart of Accounts", href: "/chart-of-accounts" },
+      { label: "View Chart of Accounts", href: "/chart-of-accounts/list" },
+      { label: "Opening Balance", href: "/opening-balance" },
       { label: "Customer", href: "/chart-of-accounts/customer" },
     ],
   },
@@ -67,25 +81,62 @@ const menuItems: MenuItem[] = [
       { label: "Bank Reconciliation", href: "/bank-reconciliation" },
     ],
   },
+  {
+    icon: ShieldCheck,
+    label: "Administration",
+    children: [
+      { label: "Company Setup", href: "/administration/company-setup" },
+      { label: "User Permissions", href: "/administration/user-permissions" },
+      { label: "Users", href: "/administration/users" },
+      { label: "Roles", href: "/administration/roles" },
+      { label: "Billing & Subscription", href: "/administration/billing" },
+      { label: "Audit Logs", href: "/administration/audit-logs" },
+      { label: "Integrations", href: "/administration/integrations" },
+      { label: "Security Policies", href: "/administration/security-policies" },
+    ],
+  },
   { icon: FileText, label: "Reports" },
 ]
 
 export function Sidebar({ open, collapsed, onClose, onToggleCollapse }: SidebarProps) {
   const pathname = usePathname()
 
-  const [openItems, setOpenItems] = useState<Record<string, boolean>>(() => {
-    const defaults: Record<string, boolean> = {}
-    menuItems.forEach((item) => {
-      if (item.children) {
-        defaults[item.label] = true
-      }
-    })
-    return defaults
-  })
+  const [openItems, setOpenItems] = useState<Record<string, boolean>>({})
 
   const toggleItem = (label: string) => {
     setOpenItems((prev) => ({ ...prev, [label]: !prev[label] }))
   }
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = window.localStorage.getItem(STORAGE_KEY)
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored) as Record<string, boolean>
+          setOpenItems(parsed)
+        } catch (err) {
+          console.warn("Failed to parse sidebar state", err)
+        }
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    const activeParent = menuItems.find((item) => {
+      if (item.href && pathname === item.href) return true
+      if (item.children?.some((child) => child.href && pathname === child.href)) return true
+      return false
+    })
+    if (activeParent?.label) {
+      setOpenItems((prev) => ({ ...prev, [activeParent.label]: true }))
+    }
+  }, [pathname])
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(openItems))
+    }
+  }, [openItems])
 
   return (
     <>
@@ -93,8 +144,8 @@ export function Sidebar({ open, collapsed, onClose, onToggleCollapse }: SidebarP
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex h-full w-64 max-w-[18rem] flex-col bg-white text-slate-800 shadow-xl ring-1 ring-slate-200 transition-transform duration-300 lg:translate-x-0",
-          collapsed && "lg:w-16 lg:max-w-16",
+          "fixed inset-y-0 left-0 z-50 flex h-full w-72 max-w-[20rem] flex-col bg-white text-slate-800 shadow-xl ring-1 ring-slate-200 transition-transform duration-300 lg:translate-x-0",
+          collapsed && "lg:w-20 lg:max-w-20",
           open ? "translate-x-0" : "-translate-x-full",
         )}
       >
@@ -138,7 +189,7 @@ export function Sidebar({ open, collapsed, onClose, onToggleCollapse }: SidebarP
             const hasChildren = !!item.children?.length
             const childActive = !!item.children?.some((child) => child.href && pathname === child.href)
             const isActive = (item.href && pathname === item.href) || childActive
-            const isOpen = hasChildren ? openItems[item.label] : false
+            const isOpen = hasChildren ? !!openItems[item.label] : false
 
             const baseButtonClasses = cn(
               "group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all border border-transparent",
@@ -217,6 +268,9 @@ export function Sidebar({ open, collapsed, onClose, onToggleCollapse }: SidebarP
         </nav>
 
         <div className="border-t border-slate-200 bg-white p-4">
+          <Button asChild variant="outline" className="w-full mb-3 justify-center">
+            <Link href="/login">Logout</Link>
+          </Button>
           {!collapsed && (
             <>
               <p className="text-xs text-slate-500">
