@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Edit, Menu, Trash2 } from "lucide-react"
+import { Edit, Menu, Plus, Trash2 } from "lucide-react"
 
 import { Sidebar } from "@/components/sidebar"
 import { Button } from "@/components/ui/button"
@@ -10,30 +10,116 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
+const accent = "#1B254D"
+
+type InvoiceLine = {
+  id: number
+  description: string
+  qty: number
+  rate: number
+  taxRate: number
+  discountRate: number
+}
+
 type Invoice = {
   id: number
   invoiceNo: string
   customer: string
   issueDate: string
   dueDate: string
-  subtotal: number
-  tax: number
-  discount: number
+  lines: InvoiceLine[]
   shipping: number
   paidAmount: number
   status: "Draft" | "Unpaid" | "Partially Paid" | "Paid" | "Overdue"
   currency: string
 }
 
-const accent = "#1B254D"
-
 const seedInvoices: Invoice[] = [
-  { id: 1, invoiceNo: "INV-1001", customer: "Pakiza Footwear", issueDate: "2024-12-01", dueDate: "2024-12-15", subtotal: 14250, tax: 1000, discount: 0, shipping: 0, paidAmount: 0, status: "Unpaid", currency: "USD" },
-  { id: 2, invoiceNo: "INV-1002", customer: "Green Valley Retail", issueDate: "2024-12-03", dueDate: "2024-12-18", subtotal: 8420, tax: 700, discount: 200, shipping: 0, paidAmount: 3000, status: "Partially Paid", currency: "USD" },
-  { id: 3, invoiceNo: "INV-1003", customer: "Northwind Traders", issueDate: "2024-12-05", dueDate: "2024-12-20", subtotal: 22000, tax: 1400, discount: 0, shipping: 0, paidAmount: 23400, status: "Paid", currency: "EUR" },
-  { id: 4, invoiceNo: "INV-1004", customer: "Crescent Mart", issueDate: "2024-12-07", dueDate: "2024-12-21", subtotal: 5600, tax: 500, discount: 0, shipping: 0, paidAmount: 0, status: "Draft", currency: "USD" },
-  { id: 5, invoiceNo: "INV-1005", customer: "Blue River Exports", issueDate: "2024-12-09", dueDate: "2024-12-24", subtotal: 16800, tax: 1200, discount: 110, shipping: 0, paidAmount: 0, status: "Overdue", currency: "USD" },
+  {
+    id: 1,
+    invoiceNo: "INV-1001",
+    customer: "Pakiza Footwear",
+    issueDate: "2024-12-01",
+    dueDate: "2024-12-15",
+    lines: [
+      { id: 1, description: "Leather Upper A", qty: 400, rate: 20, taxRate: 5, discountRate: 0 },
+      { id: 2, description: "Assembly Labor", qty: 100, rate: 30, taxRate: 0, discountRate: 0 },
+    ],
+    shipping: 0,
+    paidAmount: 0,
+    status: "Unpaid",
+    currency: "USD",
+  },
+  {
+    id: 2,
+    invoiceNo: "INV-1002",
+    customer: "Green Valley Retail",
+    issueDate: "2024-12-03",
+    dueDate: "2024-12-18",
+    lines: [
+      { id: 1, description: "Finished Shoe Model A", qty: 120, rate: 65, taxRate: 7, discountRate: 2 },
+      { id: 2, description: "Packing & Handling", qty: 120, rate: 2, taxRate: 0, discountRate: 0 },
+    ],
+    shipping: 0,
+    paidAmount: 3000,
+    status: "Partially Paid",
+    currency: "USD",
+  },
+  {
+    id: 3,
+    invoiceNo: "INV-1003",
+    customer: "Northwind Traders",
+    issueDate: "2024-12-05",
+    dueDate: "2024-12-20",
+    lines: [{ id: 1, description: "Consulting Retainer", qty: 1, rate: 23400, taxRate: 6, discountRate: 0 }],
+    shipping: 0,
+    paidAmount: 23400,
+    status: "Paid",
+    currency: "EUR",
+  },
+  {
+    id: 4,
+    invoiceNo: "INV-1004",
+    customer: "Crescent Mart",
+    issueDate: "2024-12-07",
+    dueDate: "2024-12-21",
+    lines: [{ id: 1, description: "Display Stands", qty: 30, rate: 200, taxRate: 5, discountRate: 0 }],
+    shipping: 150,
+    paidAmount: 0,
+    status: "Draft",
+    currency: "USD",
+  },
+  {
+    id: 5,
+    invoiceNo: "INV-1005",
+    customer: "Blue River Exports",
+    issueDate: "2024-12-09",
+    dueDate: "2024-12-24",
+    lines: [{ id: 1, description: "Export Order - Model B", qty: 260, rate: 70, taxRate: 8, discountRate: 1 }],
+    shipping: 0,
+    paidAmount: 0,
+    status: "Overdue",
+    currency: "USD",
+  },
 ]
+
+function calcTotals(lines: InvoiceLine[], shipping: number) {
+  const subtotal = lines.reduce((sum, l) => sum + l.qty * l.rate, 0)
+  const tax = lines.reduce((sum, l) => sum + l.qty * l.rate * (l.taxRate / 100), 0)
+  const discount = lines.reduce((sum, l) => sum + l.qty * l.rate * (l.discountRate / 100), 0)
+  const total = subtotal + tax + shipping - discount
+  return { subtotal, tax, discount, total }
+}
+
+function deriveStatus(inv: Invoice) {
+  const { total } = calcTotals(inv.lines, inv.shipping)
+  const balance = total - inv.paidAmount
+  if (balance <= 0) return "Paid"
+  if (inv.paidAmount > 0) return "Partially Paid"
+  const today = new Date().toISOString().slice(0, 10)
+  if (inv.dueDate < today) return "Overdue"
+  return inv.status === "Draft" ? "Draft" : "Unpaid"
+}
 
 export default function InvoicePage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -49,9 +135,7 @@ export default function InvoicePage() {
     customer: "",
     issueDate: "",
     dueDate: "",
-    subtotal: 0,
-    tax: 0,
-    discount: 0,
+    lines: [{ id: 1, description: "", qty: 1, rate: 0, taxRate: 0, discountRate: 0 }],
     shipping: 0,
     paidAmount: 0,
     status: "Draft",
@@ -71,31 +155,42 @@ export default function InvoicePage() {
     [invoices, search, statusFilter, currencyFilter],
   )
 
-  const handleAdd = () => {
-    if (!form.invoiceNo || !form.customer || !form.issueDate || !form.dueDate || !form.subtotal) return
+  const resetForm = () =>
+    setForm({
+      invoiceNo: "",
+      customer: "",
+      issueDate: "",
+      dueDate: "",
+      lines: [{ id: 1, description: "", qty: 1, rate: 0, taxRate: 0, discountRate: 0 }],
+      shipping: 0,
+      paidAmount: 0,
+      status: "Draft",
+      currency: "USD",
+    })
+
+  const handleSave = () => {
+    if (!form.invoiceNo || !form.customer || !form.issueDate || !form.dueDate || form.lines.length === 0) return
+    const base: Invoice = { id: editingId ?? Date.now(), ...form }
+    const nextStatus = deriveStatus(base)
+    const candidate = { ...base, status: nextStatus }
+
     if (editingId) {
-      setInvoices((prev) => prev.map((inv) => (inv.id === editingId ? { ...inv, ...form } : inv)))
+      setInvoices((prev) => prev.map((inv) => (inv.id === editingId ? candidate : inv)))
     } else {
-      const next: Invoice = {
-        id: invoices.length ? Math.max(...invoices.map((i) => i.id)) + 1 : 1,
-        ...form,
-      }
-      setInvoices((prev) => [next, ...prev])
+      setInvoices((prev) => [candidate, ...prev])
     }
     setEditingId(null)
     setDialogOpen(false)
-    setForm({ invoiceNo: "", customer: "", issueDate: "", dueDate: "", subtotal: 0, tax: 0, discount: 0, shipping: 0, status: "Draft", currency: "USD" })
+    resetForm()
   }
 
   const handleEdit = (inv: Invoice) => {
     setForm({
       invoiceNo: inv.invoiceNo,
       customer: inv.customer,
-        issueDate: inv.issueDate,
-        dueDate: inv.dueDate,
-      subtotal: inv.subtotal,
-      tax: inv.tax,
-      discount: inv.discount,
+      issueDate: inv.issueDate,
+      dueDate: inv.dueDate,
+      lines: inv.lines,
       shipping: inv.shipping,
       paidAmount: inv.paidAmount,
       status: inv.status,
@@ -105,12 +200,19 @@ export default function InvoicePage() {
     setDialogOpen(true)
   }
 
-  const handleDelete = (id: number) => {
-    setInvoices((prev) => prev.filter((inv) => inv.id !== id))
-  }
+  const handleDelete = (id: number) => setInvoices((prev) => prev.filter((inv) => inv.id !== id))
 
-  const handleMarkPaid = (id: number) => {
-    setInvoices((prev) => prev.map((inv) => (inv.id === id ? { ...inv, status: "Paid" } : inv)))
+  const handleRecordPayment = () => {
+    if (!paymentModal.targetId || paymentAmount <= 0) return
+    setInvoices((prev) =>
+      prev.map((inv) => {
+        if (inv.id !== paymentModal.targetId) return inv
+        const updated: Invoice = { ...inv, paidAmount: inv.paidAmount + paymentAmount }
+        return { ...updated, status: deriveStatus(updated) }
+      }),
+    )
+    setPaymentAmount(0)
+    setPaymentModal({ open: false, targetId: null })
   }
 
   const statusBadge = (status: Invoice["status"]) => {
@@ -123,6 +225,110 @@ export default function InvoicePage() {
     }
     return <span className={`rounded-full px-2 py-1 text-[11px] font-semibold ${map[status]}`}>{status}</span>
   }
+
+  const renderLineRows = () => {
+    const updateLine = (id: number, patch: Partial<InvoiceLine>) => {
+      setForm((prev) => ({ ...prev, lines: prev.lines.map((l) => (l.id === id ? { ...l, ...patch } : l)) }))
+    }
+    const removeLine = (id: number) => {
+      setForm((prev) => ({ ...prev, lines: prev.lines.filter((l) => l.id !== id) }))
+    }
+    const addLine = () => {
+      setForm((prev) => ({
+        ...prev,
+        lines: [...prev.lines, { id: prev.lines.length ? Math.max(...prev.lines.map((l) => l.id)) + 1 : 1, description: "", qty: 1, rate: 0, taxRate: 0, discountRate: 0 }],
+      }))
+    }
+
+    return (
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <Label className="text-xs text-slate-600">Line Items</Label>
+          <Button variant="outline" size="sm" className="h-8 text-[11px]" onClick={addLine}>
+            <Plus className="h-3.5 w-3.5 mr-1" /> Add line
+          </Button>
+        </div>
+        <div className="overflow-x-auto rounded-md border border-slate-200">
+          <table className="min-w-full text-[11px]">
+            <thead className="bg-slate-50 text-slate-600">
+              <tr>
+                <th className="px-2 py-2 text-left">Description</th>
+                <th className="px-2 py-2 text-left">Qty</th>
+                <th className="px-2 py-2 text-left">Rate</th>
+                <th className="px-2 py-2 text-left">Tax %</th>
+                <th className="px-2 py-2 text-left">Discount %</th>
+                <th className="px-2 py-2 text-left">Amount</th>
+                <th className="px-2 py-2 text-left">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {form.lines.map((line) => {
+                const lineAmount = line.qty * line.rate
+                return (
+                  <tr key={line.id} className="border-t text-slate-900">
+                    <td className="px-2 py-1">
+                      <Input
+                        value={line.description}
+                        onChange={(e) => updateLine(line.id, { description: e.target.value })}
+                        className="h-8 text-[11px]"
+                      />
+                    </td>
+                    <td className="px-2 py-1">
+                      <Input
+                        type="number"
+                        value={line.qty}
+                        onChange={(e) => updateLine(line.id, { qty: Number(e.target.value) || 0 })}
+                        className="h-8 text-[11px]"
+                      />
+                    </td>
+                    <td className="px-2 py-1">
+                      <Input
+                        type="number"
+                        value={line.rate}
+                        onChange={(e) => updateLine(line.id, { rate: Number(e.target.value) || 0 })}
+                        className="h-8 text-[11px]"
+                      />
+                    </td>
+                    <td className="px-2 py-1">
+                      <Input
+                        type="number"
+                        value={line.taxRate}
+                        onChange={(e) => updateLine(line.id, { taxRate: Number(e.target.value) || 0 })}
+                        className="h-8 text-[11px]"
+                      />
+                    </td>
+                    <td className="px-2 py-1">
+                      <Input
+                        type="number"
+                        value={line.discountRate}
+                        onChange={(e) => updateLine(line.id, { discountRate: Number(e.target.value) || 0 })}
+                        className="h-8 text-[11px]"
+                      />
+                    </td>
+                    <td className="px-2 py-1 text-right">{lineAmount.toLocaleString()}</td>
+                    <td className="px-2 py-1 text-right">
+                      <Button variant="outline" size="sm" className="h-8 px-2 text-[11px]" onClick={() => removeLine(line.id)}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </td>
+                  </tr>
+                )
+              })}
+              {form.lines.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="px-2 py-3 text-center text-slate-500 text-sm">
+                    Add at least one line item
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    )
+  }
+
+  const totals = calcTotals(form.lines, form.shipping)
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -207,58 +413,56 @@ export default function InvoicePage() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((inv, idx) => (
-                  <tr key={inv.id} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/60"}>
-                    <td className="px-3 py-2 text-slate-900">{inv.invoiceNo}</td>
-                    <td className="px-3 py-2 text-slate-900">{inv.customer}</td>
-                    <td className="px-3 py-2 text-slate-900">{inv.issueDate}</td>
-                    <td className="px-3 py-2 text-slate-900">{inv.dueDate}</td>
-                    <td className="px-3 py-2 text-slate-900">{inv.currency} {inv.subtotal.toLocaleString()}</td>
-                    <td className="px-3 py-2 text-slate-900">{inv.currency} {inv.tax.toLocaleString()}</td>
-                    <td className="px-3 py-2 text-slate-900">{inv.currency} {inv.discount.toLocaleString()}</td>
-                    <td className="px-3 py-2 text-slate-900">{inv.currency} {inv.shipping.toLocaleString()}</td>
-                    <td className="px-3 py-2 text-slate-900">
-                      {inv.currency} {(inv.subtotal + inv.tax + inv.shipping - inv.discount).toLocaleString()}
-                    </td>
-                    <td className="px-3 py-2">{statusBadge(inv.status)}</td>
-                    <td className="px-3 py-2 text-slate-900">
-                      {inv.currency} {inv.paidAmount.toLocaleString()}
-                    </td>
-                    <td className="px-3 py-2 text-slate-900">
-                      {inv.currency} {(inv.subtotal + inv.tax + inv.shipping - inv.discount - inv.paidAmount).toLocaleString()}
-                    </td>
-                    <td className="px-3 py-2">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Button variant="outline" size="sm" className="h-8 px-2 text-[11px]" onClick={() => handleEdit(inv)}>
-                          <Edit className="h-3.5 w-3.5 mr-1" />
-                          Edit
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8 px-2 text-[11px] text-rose-600"
-                          onClick={() => handleDelete(inv.id)}
-                        >
-                          <Trash2 className="h-3.5 w-3.5 mr-1" />
-                          Delete
-                        </Button>
-                        {inv.status !== "Paid" && (
+                {filtered.map((inv, idx) => {
+                  const totals = calcTotals(inv.lines, inv.shipping)
+                  const balance = totals.total - inv.paidAmount
+                  return (
+                    <tr key={inv.id} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/60"}>
+                      <td className="px-3 py-2 text-slate-900">{inv.invoiceNo}</td>
+                      <td className="px-3 py-2 text-slate-900">{inv.customer}</td>
+                      <td className="px-3 py-2 text-slate-900">{inv.issueDate}</td>
+                      <td className="px-3 py-2 text-slate-900">{inv.dueDate}</td>
+                      <td className="px-3 py-2 text-slate-900">{inv.currency} {totals.subtotal.toLocaleString()}</td>
+                      <td className="px-3 py-2 text-slate-900">{inv.currency} {totals.tax.toLocaleString()}</td>
+                      <td className="px-3 py-2 text-slate-900">{inv.currency} {totals.discount.toLocaleString()}</td>
+                      <td className="px-3 py-2 text-slate-900">{inv.currency} {inv.shipping.toLocaleString()}</td>
+                      <td className="px-3 py-2 text-slate-900">{inv.currency} {totals.total.toLocaleString()}</td>
+                      <td className="px-3 py-2">{statusBadge(inv.status)}</td>
+                      <td className="px-3 py-2 text-slate-900">{inv.currency} {inv.paidAmount.toLocaleString()}</td>
+                      <td className="px-3 py-2 text-slate-900">{inv.currency} {balance.toLocaleString()}</td>
+                      <td className="px-3 py-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Button variant="outline" size="sm" className="h-8 px-2 text-[11px]" onClick={() => handleEdit(inv)}>
+                            <Edit className="h-3.5 w-3.5 mr-1" />
+                            Edit
+                          </Button>
                           <Button
                             variant="outline"
                             size="sm"
-                            className="h-8 px-2 text-[11px] text-emerald-700"
-                            onClick={() => setPaymentModal({ open: true, targetId: inv.id })}
+                            className="h-8 px-2 text-[11px] text-rose-600"
+                            onClick={() => handleDelete(inv.id)}
                           >
-                            Record Payment
+                            <Trash2 className="h-3.5 w-3.5 mr-1" />
+                            Delete
                           </Button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                          {inv.status !== "Paid" && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 px-2 text-[11px] text-emerald-700"
+                              onClick={() => setPaymentModal({ open: true, targetId: inv.id })}
+                            >
+                              Record Payment
+                            </Button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="px-3 py-6 text-center text-sm text-slate-500">
+                    <td colSpan={13} className="px-3 py-6 text-center text-sm text-slate-500">
                       No invoices found
                     </td>
                   </tr>
@@ -270,11 +474,11 @@ export default function InvoicePage() {
       </main>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-4xl">
           <DialogHeader>
             <DialogTitle style={{ color: accent }}>{editingId ? "Edit Invoice" : "Add Invoice"}</DialogTitle>
           </DialogHeader>
-          <div className="grid gap-3">
+          <div className="grid gap-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <Label className="text-xs text-slate-600">Invoice No *</Label>
@@ -313,13 +517,16 @@ export default function InvoicePage() {
                 />
               </div>
             </div>
+
+            {renderLineRows()}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs text-slate-600">Subtotal *</Label>
+                <Label className="text-xs text-slate-600">Shipping</Label>
                 <Input
                   type="number"
-                  value={form.subtotal || ""}
-                  onChange={(e) => setForm((p) => ({ ...p, subtotal: Number(e.target.value) || 0 }))}
+                  value={form.shipping || ""}
+                  onChange={(e) => setForm((p) => ({ ...p, shipping: Number(e.target.value) || 0 }))}
                   className="h-9 text-[11px]"
                 />
               </div>
@@ -337,36 +544,8 @@ export default function InvoicePage() {
                 </Select>
               </div>
             </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs text-slate-600">Tax</Label>
-                <Input
-                  type="number"
-                  value={form.tax || ""}
-                  onChange={(e) => setForm((p) => ({ ...p, tax: Number(e.target.value) || 0 }))}
-                  className="h-9 text-[11px]"
-                />
-              </div>
-              <div>
-                <Label className="text-xs text-slate-600">Discount</Label>
-                <Input
-                  type="number"
-                  value={form.discount || ""}
-                  onChange={(e) => setForm((p) => ({ ...p, discount: Number(e.target.value) || 0 }))}
-                  className="h-9 text-[11px]"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs text-slate-600">Shipping</Label>
-                <Input
-                  type="number"
-                  value={form.shipping || ""}
-                  onChange={(e) => setForm((p) => ({ ...p, shipping: Number(e.target.value) || 0 }))}
-                  className="h-9 text-[11px]"
-                />
-              </div>
               <div>
                 <Label className="text-xs text-slate-600">Status</Label>
                 <Select value={form.status} onValueChange={(v) => setForm((p) => ({ ...p, status: v as Invoice["status"] }))}>
@@ -382,14 +561,46 @@ export default function InvoicePage() {
                   </SelectContent>
                 </Select>
               </div>
+              <div className="self-end text-right text-[11px] text-slate-700">
+                <div>Subtotal: {totals.subtotal.toLocaleString()}</div>
+                <div>Tax: {totals.tax.toLocaleString()}</div>
+                <div>Discount: {totals.discount.toLocaleString()}</div>
+                <div>Shipping: {form.shipping.toLocaleString()}</div>
+                <div className="font-semibold text-slate-900">Total: {totals.total.toLocaleString()}</div>
+              </div>
             </div>
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" className="text-[11px]" onClick={() => setDialogOpen(false)}>
               Cancel
             </Button>
-            <Button style={{ backgroundColor: accent }} className="text-white text-[11px]" onClick={handleAdd}>
+            <Button style={{ backgroundColor: accent }} className="text-white text-[11px]" onClick={handleSave}>
               Save Invoice
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={paymentModal.open} onOpenChange={(open) => setPaymentModal((prev) => ({ ...prev, open }))}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle style={{ color: accent }}>Record Payment</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-3">
+            <Label className="text-xs text-slate-600">Amount</Label>
+            <Input
+              type="number"
+              value={paymentAmount || ""}
+              onChange={(e) => setPaymentAmount(Number(e.target.value) || 0)}
+              className="h-9 text-[11px]"
+            />
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" className="text-[11px]" onClick={() => setPaymentModal({ open: false, targetId: null })}>
+              Cancel
+            </Button>
+            <Button style={{ backgroundColor: accent }} className="text-white text-[11px]" onClick={handleRecordPayment}>
+              Save Payment
             </Button>
           </DialogFooter>
         </DialogContent>
