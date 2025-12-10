@@ -932,7 +932,7 @@ export default function ChartOfAccountsPage() {
                           <td className="px-3 py-2 text-slate-700">{sub?.title ?? "-"}</td>
                           <td className="px-3 py-2 text-slate-900">{item.title}</td>
                         <td className="px-3 py-2 text-slate-700">
-                          {composeCode(cls, grp, sub, item) || "-"}
+                          {composeCode(cls, group, sub, item) || "-"}
                         </td>
                           <td className="px-3 py-2">{renderStatus(item.status)}</td>
                           <td className="px-3 py-2 text-right space-x-2">
