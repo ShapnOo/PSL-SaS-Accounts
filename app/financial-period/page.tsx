@@ -196,9 +196,6 @@ export default function FinancialPeriodPage() {
                           <button className="rounded-md px-2 py-1 text-[11px] font-semibold text-amber-700 hover:bg-amber-50">
                             Lock
                           </button>
-                          <button className="rounded-md px-2 py-1 text-[11px] font-semibold text-slate-600 hover:bg-slate-100">
-                            Archive
-                          </button>
                         </div>
                       </td>
                     </tr>
