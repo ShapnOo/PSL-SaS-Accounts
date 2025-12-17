@@ -1,12 +1,12 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 import { Sidebar } from "@/components/sidebar"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
-import { CalendarSearch, CalendarX2, CheckCircle, Menu, X } from "lucide-react"
+import { CalendarSearch, CalendarX2, CheckCircle, Menu } from "lucide-react"
 
 type MonthLock = {
   id: number
@@ -30,19 +30,51 @@ const seedMonths: MonthLock[] = [
   { id: 12, month: "June", year: 2026, status: "Unlocked" },
 ]
 
+const monthToIndex: Record<string, number> = {
+  January: 1,
+  February: 2,
+  March: 3,
+  April: 4,
+  May: 5,
+  June: 6,
+  July: 7,
+  August: 8,
+  September: 9,
+  October: 10,
+  November: 11,
+  December: 12,
+}
+
+const deriveFiscalYear = (month: MonthLock) => {
+  const monthIndex = monthToIndex[month.month]
+  const startYear = monthIndex >= 7 ? month.year : month.year - 1
+  const endYear = startYear + 1
+  return `${startYear}-${endYear}`
+}
+
 export default function MonthLockPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
-  const [fiscalYear, setFiscalYear] = useState("2025-2026")
   const [months, setMonths] = useState<MonthLock[]>(seedMonths)
+  const [selectedFiscalYear, setSelectedFiscalYear] = useState<string>(() => deriveFiscalYear(seedMonths[0]))
 
-  const years = useMemo(() => {
-    const uniqueYears = Array.from(new Set(months.map((m) => m.year)))
-    const min = Math.min(...uniqueYears)
-    const max = Math.max(...uniqueYears)
-    return `${min}-${max}`
+  const fiscalYearOptions = useMemo(() => {
+    const options = Array.from(new Set(months.map((m) => deriveFiscalYear(m))))
+    return options.sort((a, b) => Number(a.split("-")[0]) - Number(b.split("-")[0]))
   }, [months])
+
+  useEffect(() => {
+    if (!fiscalYearOptions.length) return
+    if (!selectedFiscalYear || !fiscalYearOptions.includes(selectedFiscalYear)) {
+      setSelectedFiscalYear(fiscalYearOptions[0])
+    }
+  }, [fiscalYearOptions, selectedFiscalYear])
+
+  const filteredMonths = useMemo(
+    () => months.filter((m) => deriveFiscalYear(m) === selectedFiscalYear),
+    [months, selectedFiscalYear],
+  )
 
   const toggleLock = (id: number) => {
     setMonths((prev) =>
@@ -77,19 +109,25 @@ export default function MonthLockPage() {
             <div className="flex flex-wrap items-center gap-3 border-b border-border/70 p-4">
               <div className="flex items-center gap-2">
                 <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Fiscal Year</div>
-                <div className="relative">
-                  <Input
-                    value={fiscalYear}
-                    onChange={(e) => setFiscalYear(e.target.value)}
-                    className="h-9 w-40 text-sm"
-                  />
-                </div>
+                <Select value={selectedFiscalYear} onValueChange={setSelectedFiscalYear}>
+                  <SelectTrigger className="h-9 w-44 text-sm">
+                    <div className="flex items-center gap-2">
+                      <CalendarSearch className="h-4 w-4 text-muted-foreground" />
+                      <SelectValue placeholder="Select fiscal year" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {fiscalYearOptions.map((fy) => (
+                      <SelectItem key={fy} value={fy}>
+                        {fy}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <Button variant="outline" size="sm" className="h-9 gap-2 text-xs">
-                <CalendarSearch className="h-4 w-4" />
-                Search
-              </Button>
-              <span className="text-[11px] text-muted-foreground">Current range: {years}</span>
+              <span className="text-[11px] text-muted-foreground">
+                Showing {selectedFiscalYear} ({filteredMonths.length} months)
+              </span>
             </div>
 
             <div className="overflow-x-auto">
@@ -103,7 +141,7 @@ export default function MonthLockPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/70">
-                  {months.map((m) => (
+                  {filteredMonths.map((m) => (
                     <tr key={m.id} className="text-sm text-foreground/90 hover:bg-muted/40 transition-colors">
                       <td className="px-3 py-3 sm:px-4">{m.month}</td>
                       <td className="px-3 py-3 sm:px-4 text-muted-foreground">{m.year}</td>
@@ -139,6 +177,13 @@ export default function MonthLockPage() {
                       </td>
                     </tr>
                   ))}
+                  {filteredMonths.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="px-3 py-4 text-center text-sm text-muted-foreground">
+                        No months found for the selected fiscal year.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
