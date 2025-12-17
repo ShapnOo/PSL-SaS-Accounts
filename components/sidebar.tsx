@@ -56,6 +56,7 @@ const menuItems: MenuItem[] = [
       { label: "Chart of Accounts List", href: "/chart-of-accounts/list" },
       { label: "Opening Balance", href: "/opening-balance" },
       { label: "Customer", href: "/chart-of-accounts/customer" },
+      { label: "Supplier", href: "/chart-of-accounts/supplier" },
     ],
   },
   {
