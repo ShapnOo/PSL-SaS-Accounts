@@ -175,8 +175,16 @@ export default function ChartOfAccountsPage() {
     status: "Active" as Status,
     editing: "",
   })
+  const defaultGlClassId = initialClasses[0]?.id ?? ""
+  const defaultGlGroupId = initialGroups.find((g) => g.classId === defaultGlClassId)?.id ?? initialGroups[0]?.id ?? ""
+  const defaultGlSubGroupId = initialSubGroups.find((sg) => sg.groupId === defaultGlGroupId)?.id ?? initialSubGroups[0]?.id ?? ""
+  const defaultGlControlId = initialControls.find((c) => c.subGroupId === defaultGlSubGroupId)?.id ?? initialControls[0]?.id ?? ""
+
   const [glForm, setGlForm] = useState({
-    controlId: initialControls[0]?.id ?? "",
+    classId: defaultGlClassId,
+    groupId: defaultGlGroupId,
+    subGroupId: defaultGlSubGroupId,
+    controlId: defaultGlControlId,
     title: "",
     manualCode: "",
     status: "Active" as Status,
@@ -198,7 +206,8 @@ export default function ChartOfAccountsPage() {
     setGroupForm({ classId: classes[0]?.id ?? "", title: "", manualCode: "", status: "Active", editing: "" })
     setSubGroupForm({ groupId: groups[0]?.id ?? "", title: "", manualCode: "", status: "Active", editing: "" })
     setControlForm({ subGroupId: subGroups[0]?.id ?? "", title: "", manualCode: "", status: "Active", editing: "" })
-    setGlForm({ controlId: controls[0]?.id ?? "", title: "", manualCode: "", status: "Active", editing: "" })
+    const def = getDefaultGlForm()
+    setGlForm(def)
   }
 
   const handleSaveClass = () => {
@@ -271,7 +280,7 @@ export default function ChartOfAccountsPage() {
         { id: uid("gl"), controlId: glForm.controlId, title: glForm.title, manualCode: glForm.manualCode, status: glForm.status },
       ])
     }
-    setGlForm({ controlId: controls[0]?.id ?? "", title: "", manualCode: "", status: "Active", editing: "" })
+    setGlForm(getDefaultGlForm())
   }
 
   const groupList = groups
@@ -442,8 +451,31 @@ export default function ChartOfAccountsPage() {
     setControlDialogOpen(true)
   }
 
+  const getDefaultGlForm = (controlId?: string) => {
+    const control = controlId ? controls.find((c) => c.id === controlId) : controls[0]
+    const sub = control ? subGroups.find((sg) => sg.id === control.subGroupId) : subGroups[0]
+    const group = sub ? groups.find((g) => g.id === sub.groupId) : groups.find((g) => g.classId === classes[0]?.id) ?? groups[0]
+    const cls = group ? classes.find((c) => c.id === group.classId) : classes[0]
+
+    const classId = cls?.id ?? ""
+    const groupId = group?.id ?? groups.find((g) => g.classId === classId)?.id ?? ""
+    const subGroupId = sub?.id ?? subGroups.find((sg) => sg.groupId === groupId)?.id ?? ""
+    const ctlId = control?.id ?? controls.find((c) => c.subGroupId === subGroupId)?.id ?? ""
+
+    return {
+      classId,
+      groupId,
+      subGroupId,
+      controlId: ctlId,
+      title: "",
+      manualCode: "",
+      status: "Active" as Status,
+      editing: "",
+    }
+  }
+
   const openNewGl = (controlId?: string) => {
-    setGlForm({ controlId: controlId ?? controls[0]?.id ?? "", title: "", manualCode: "", status: "Active", editing: "" })
+    setGlForm(getDefaultGlForm(controlId))
     setGlDialogOpen(true)
   }
 
@@ -483,7 +515,18 @@ export default function ChartOfAccountsPage() {
     if (node.type === "gl") {
       const gl = glAccounts.find((g) => g.id === node.id)
       if (gl) {
-        setGlForm({ ...gl, editing: gl.id })
+        const control = controls.find((c) => c.id === gl.controlId)
+        const sub = control ? subGroups.find((sg) => sg.id === control.subGroupId) : undefined
+        const group = sub ? groups.find((g) => g.id === sub.groupId) : undefined
+        const cls = group ? classes.find((c) => c.id === group.classId) : undefined
+        setGlForm({
+          ...gl,
+          classId: cls?.id ?? "",
+          groupId: group?.id ?? "",
+          subGroupId: sub?.id ?? "",
+          controlId: control?.id ?? "",
+          editing: gl.id,
+        })
         setGlDialogOpen(true)
       }
     }
@@ -775,10 +818,22 @@ export default function ChartOfAccountsPage() {
                           <span className="font-semibold text-slate-900">{composeCode(cls, g) || "-"} :: {g.title}</span>
                           <span className="text-[10px] text-slate-500">Use “Add Sub Group” to place children here.</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          {renderStatus(g.status)}
-                        </div>
-                      </div>
+                <div className="flex items-center gap-2">
+                  {renderStatus(g.status)}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 px-2 text-[11px]"
+                    onClick={() => {
+                      setGroupForm({ ...g, editing: g.id })
+                      setGroupDialogOpen(true)
+                    }}
+                  >
+                    <Edit3 className="mr-1 h-3.5 w-3.5" />
+                    Edit
+                  </Button>
+                </div>
+              </div>
                       {expandedGroups[g.id] && (
                         <div className="mt-2 space-y-2 rounded-md bg-sky-50/40 px-3 py-2">
                           <div className="flex items-center justify-between rounded-md bg-sky-50 px-3 py-1.5 text-[11px] font-semibold text-sky-900">
@@ -800,15 +855,27 @@ export default function ChartOfAccountsPage() {
                                     >
                                       {expandedSubGroups[sg.id] ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
                                     </button>
-                                  <span className="font-semibold text-slate-900">{composeCode(cls, g, sg) || "-"} :: {sg.title}</span>
-                                  <span className="text-[10px] text-slate-500">“Add Control” attaches controls under this sub group.</span>
+                                    <span className="font-semibold text-slate-900">{composeCode(cls, g, sg) || "-"} :: {sg.title}</span>
+                                    <span className="text-[10px] text-slate-500">"Add Control" attaches controls under this sub group.</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    {renderStatus(sg.status)}
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-8 px-2 text-[11px]"
+                                      onClick={() => {
+                                        setSubGroupForm({ ...sg, editing: sg.id })
+                                        setSubGroupDialogOpen(true)
+                                      }}
+                                    >
+                                      <Edit3 className="mr-1 h-3.5 w-3.5" />
+                                      Edit
+                                    </Button>
+                                  </div>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  {renderStatus(sg.status)}
-                                </div>
-                              </div>
                                 {expandedSubGroups[sg.id] && (
-                                  <div className="mt-2 space-y-2 rounded-md bg-amber-50/50 px-3 py-2">
+                                  <div className="mt-2 space-y-3 rounded-md bg-amber-50/50 px-3 py-3">
                                     <div className="flex items-center justify-between rounded-md bg-amber-50 px-3 py-1.5 text-[11px] font-semibold text-amber-900">
                                       <span>Control Name</span>
                                       <Button variant="outline" size="sm" className="h-8 px-2 text-[11px]" onClick={() => openNewControl(sg.id)}>
@@ -832,9 +899,25 @@ export default function ChartOfAccountsPage() {
                                             </div>
                                             <div className="flex items-center gap-2">
                                               {renderStatus(ctl.status)}
+                                              <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-8 px-2 text-[11px]"
+                                                onClick={() => {
+                                                  setControlForm({ ...ctl, editing: ctl.id })
+                                                  setControlDialogOpen(true)
+                                                }}
+                                              >
+                                                <Edit3 className="mr-1 h-3.5 w-3.5" />
+                                                Edit
+                                              </Button>
                                             </div>
                                           </div>
-                                          {expandedControls[ctl.id] && renderControlSection(ctl)}
+                                          {expandedControls[ctl.id] && (
+                                            <div className="mt-2">
+                                              {renderControlSection(ctl)}
+                                            </div>
+                                          )}
                                         </div>
                                       ))}
                                   </div>
@@ -994,6 +1077,7 @@ export default function ChartOfAccountsPage() {
                   className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm"
                   value={groupForm.classId}
                   onChange={(e) => setGroupForm((p) => ({ ...p, classId: e.target.value }))}
+                  disabled={Boolean(groupForm.editing)}
                 >
                   <option value="">Select class</option>
                   {classOptions.map((c) => (
@@ -1019,6 +1103,7 @@ export default function ChartOfAccountsPage() {
                   value={groupForm.manualCode}
                   onChange={(e) => setGroupForm((p) => ({ ...p, manualCode: e.target.value }))}
                   className="h-10"
+                  disabled={Boolean(groupForm.editing)}
                 />
               </div>
               <div className="space-y-1">
@@ -1027,6 +1112,7 @@ export default function ChartOfAccountsPage() {
                   className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm"
                   value={groupForm.status}
                   onChange={(e) => setGroupForm((p) => ({ ...p, status: e.target.value as Status }))}
+                  disabled={Boolean(groupForm.editing)}
                 >
                   <option>Active</option>
                   <option>Inactive</option>
@@ -1063,6 +1149,7 @@ export default function ChartOfAccountsPage() {
                   className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm"
                   value={subGroupForm.groupId}
                   onChange={(e) => setSubGroupForm((p) => ({ ...p, groupId: e.target.value }))}
+                  disabled={Boolean(subGroupForm.editing)}
                 >
                   <option value="">Select group</option>
                   {groupList.map((g) => (
@@ -1088,6 +1175,7 @@ export default function ChartOfAccountsPage() {
                   value={subGroupForm.manualCode}
                   onChange={(e) => setSubGroupForm((p) => ({ ...p, manualCode: e.target.value }))}
                   className="h-10"
+                  disabled={Boolean(subGroupForm.editing)}
                 />
               </div>
               <div className="space-y-1">
@@ -1096,6 +1184,7 @@ export default function ChartOfAccountsPage() {
                   className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm"
                   value={subGroupForm.status}
                   onChange={(e) => setSubGroupForm((p) => ({ ...p, status: e.target.value as Status }))}
+                  disabled={Boolean(subGroupForm.editing)}
                 >
                   <option>Active</option>
                   <option>Inactive</option>
@@ -1132,6 +1221,7 @@ export default function ChartOfAccountsPage() {
                   className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm"
                   value={controlForm.subGroupId}
                   onChange={(e) => setControlForm((p) => ({ ...p, subGroupId: e.target.value }))}
+                  disabled={Boolean(controlForm.editing)}
                 >
                   <option value="">Select sub group</option>
                   {subGroupList.map((sg) => (
@@ -1157,6 +1247,7 @@ export default function ChartOfAccountsPage() {
                   value={controlForm.manualCode}
                   onChange={(e) => setControlForm((p) => ({ ...p, manualCode: e.target.value }))}
                   className="h-10"
+                  disabled={Boolean(controlForm.editing)}
                 />
               </div>
               <div className="space-y-1">
@@ -1165,6 +1256,7 @@ export default function ChartOfAccountsPage() {
                   className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm"
                   value={controlForm.status}
                   onChange={(e) => setControlForm((p) => ({ ...p, status: e.target.value as Status }))}
+                  disabled={Boolean(controlForm.editing)}
                 >
                   <option>Active</option>
                   <option>Inactive</option>
@@ -1196,6 +1288,91 @@ export default function ChartOfAccountsPage() {
             </DialogHeader>
             <div className="space-y-3">
               <div className="space-y-1">
+                <Label className="text-xs text-slate-600">Class</Label>
+                <select
+                  className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm"
+                  value={glForm.classId}
+                  onChange={(e) => {
+                    const newClassId = e.target.value
+                    const nextGroup = groups.find((g) => g.classId === newClassId)
+                    const nextGroupId = nextGroup?.id ?? ""
+                    const nextSub = subGroups.find((sg) => sg.groupId === nextGroupId)
+                    const nextSubId = nextSub?.id ?? ""
+                    const nextCtl = controls.find((c) => c.subGroupId === nextSubId)
+                    const nextCtlId = nextCtl?.id ?? ""
+                    setGlForm((p) => ({
+                      ...p,
+                      classId: newClassId,
+                      groupId: nextGroupId,
+                      subGroupId: nextSubId,
+                      controlId: nextCtlId,
+                    }))
+                  }}
+                >
+                  <option value="">Select class</option>
+                  {classes.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-slate-600">Group</Label>
+                <select
+                  className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm"
+                  value={glForm.groupId}
+                  onChange={(e) => {
+                    const newGroupId = e.target.value
+                    const nextSub = subGroups.find((sg) => sg.groupId === newGroupId)
+                    const nextSubId = nextSub?.id ?? ""
+                    const nextCtl = controls.find((c) => c.subGroupId === nextSubId)
+                    const nextCtlId = nextCtl?.id ?? ""
+                    setGlForm((p) => ({
+                      ...p,
+                      groupId: newGroupId,
+                      subGroupId: nextSubId,
+                      controlId: nextCtlId,
+                    }))
+                  }}
+                >
+                  <option value="">Select group</option>
+                  {groups
+                    .filter((g) => !glForm.classId || g.classId === glForm.classId)
+                    .map((g) => (
+                      <option key={g.id} value={g.id}>
+                        {g.title}
+                      </option>
+                    ))}
+                </select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-slate-600">Sub Group</Label>
+                <select
+                  className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm"
+                  value={glForm.subGroupId}
+                  onChange={(e) => {
+                    const newSubId = e.target.value
+                    const nextCtl = controls.find((c) => c.subGroupId === newSubId)
+                    const nextCtlId = nextCtl?.id ?? ""
+                    setGlForm((p) => ({
+                      ...p,
+                      subGroupId: newSubId,
+                      controlId: nextCtlId,
+                    }))
+                  }}
+                >
+                  <option value="">Select sub group</option>
+                  {subGroups
+                    .filter((sg) => !glForm.groupId || sg.groupId === glForm.groupId)
+                    .map((sg) => (
+                      <option key={sg.id} value={sg.id}>
+                        {sg.title}
+                      </option>
+                    ))}
+                </select>
+              </div>
+              <div className="space-y-1">
                 <Label className="text-xs text-slate-600">Control *</Label>
                 <select
                   className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm"
@@ -1203,11 +1380,13 @@ export default function ChartOfAccountsPage() {
                   onChange={(e) => setGlForm((p) => ({ ...p, controlId: e.target.value }))}
                 >
                   <option value="">Select control</option>
-                  {controls.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.title}
-                    </option>
-                  ))}
+                  {controls
+                    .filter((c) => !glForm.subGroupId || c.subGroupId === glForm.subGroupId)
+                    .map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.title}
+                      </option>
+                    ))}
                 </select>
               </div>
               <div className="space-y-1">
