@@ -419,16 +419,16 @@ export default function ChartOfAccountsPage() {
     class: "bg-indigo-50 text-indigo-700",
     group: "bg-sky-50 text-sky-700",
     subGroup: "bg-blue-50 text-blue-700",
-    control: "bg-amber-50 text-amber-800",
-    gl: "bg-emerald-50 text-emerald-700",
+    control: "bg-cyan-50 text-cyan-800",
+    gl: "bg-emerald-100 text-emerald-800",
   }
 
   const typeAccent: Record<TreeNodeItem["type"], string> = {
     class: "#F06292",
     group: "#BA68C8",
     subGroup: "#4FC3F7",
-    control: "#FFB74D",
-    gl: "#81C784",
+    control: "#06B6D4",
+    gl: "#34D399",
   }
 
   const openNewClass = () => {
@@ -725,7 +725,7 @@ export default function ChartOfAccountsPage() {
     const controlGl = glAccounts.filter((gl) => gl.controlId === control.id)
     return (
       <div key={control.id} className="rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between border-b border-slate-200 bg-amber-50 px-3 py-2 text-[11px] font-semibold text-amber-900">
+        <div className="flex items-center justify-between border-b border-slate-200 bg-cyan-50 px-3 py-2 text-[11px] font-semibold text-cyan-900">
           <span>{composeCode(classes.find((c) => c.id === classes.find((c2) => c2.id === groups.find((g) => g.id === subGroups.find((sg) => sg.id === control.subGroupId)?.groupId)?.classId)?.id), groups.find((g) => g.id === subGroups.find((sg) => sg.id === control.subGroupId)?.groupId), subGroups.find((sg) => sg.id === control.subGroupId), control) || "-"}</span>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" className="h-8 px-2 text-[11px]" onClick={() => openNewGl(control.id)}>
