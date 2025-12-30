@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useState } from "react"
 import { ToggleLeft, ToggleRight, Menu, ChevronRight, ChevronDown, Plus, Edit3 } from "lucide-react"
@@ -393,17 +393,17 @@ export default function ChartOfAccountsPage() {
 
   const toggleNode = (id: string) => setExpandedNodes((prev) => ({ ...prev, [id]: !prev[id] }))
   const expandAllNodes = () => {
-    const map: Record<string, boolean> = {}
-    const visit = (node: TreeNodeItem) => {
-      if (node.children?.length) {
-        map[node.id] = true
-        node.children.forEach(visit)
-      }
-    }
-    treeData.forEach(visit)
-    setExpandedNodes(map)
+    setExpandedClasses(Object.fromEntries(classes.map((c) => [c.id, true])))
+    setExpandedGroups(Object.fromEntries(groups.map((g) => [g.id, true])))
+    setExpandedSubGroups(Object.fromEntries(subGroups.map((sg) => [sg.id, true])))
+    setExpandedControls(Object.fromEntries(controls.map((ctl) => [ctl.id, true])))
   }
-  const collapseAllNodes = () => setExpandedNodes({})
+  const collapseAllNodes = () => {
+    setExpandedClasses({})
+    setExpandedGroups({})
+    setExpandedSubGroups({})
+    setExpandedControls({})
+  }
 
   const typeLabels: Record<TreeNodeItem["type"], string> = {
     class: "Class",
@@ -422,11 +422,11 @@ export default function ChartOfAccountsPage() {
   }
 
   const typeAccent: Record<TreeNodeItem["type"], string> = {
-    class: "#4F46E5",
-    group: "#0EA5E9",
-    subGroup: "#2563EB",
-    control: "#F59E0B",
-    gl: "#10B981",
+    class: "#F06292",
+    group: "#BA68C8",
+    subGroup: "#4FC3F7",
+    control: "#FFB74D",
+    gl: "#81C784",
   }
 
   const openNewClass = () => {
@@ -562,11 +562,29 @@ export default function ChartOfAccountsPage() {
   }
 
   const TreeRow = ({ node, depth }: { node: TreeNodeItem; depth: number }) => {
-    const hasChildren = Boolean(node.children?.length)
+    const isControl = node.type === "control"
+    const glChildren = isControl ? node.children ?? [] : []
+    const otherChildren = isControl ? [] : node.children ?? []
+    const hasChildren = Boolean(otherChildren.length)
     const isExpanded = hasTreeSearch ? true : expandedNodes[node.id] ?? false
 
+    const headerClass =
+      node.type === "class"
+        ? "bg-rose-50 border-rose-100 text-rose-900"
+        : node.type === "group"
+          ? "bg-purple-50 border-purple-100 text-purple-900"
+          : node.type === "subGroup"
+            ? "bg-sky-50 border-sky-100 text-sky-900"
+            : node.type === "control"
+              ? "bg-amber-50 border-amber-100 text-amber-900"
+              : "bg-emerald-50 border-emerald-100 text-emerald-900"
+
     return (
-            <div className="space-y-2" style={{ marginLeft: depth ? depth * 12 : 0 }}>
+      <div className="space-y-1.5" style={{ marginLeft: depth ? depth * 12 : 0 }}>
+        <div className={`flex items-center justify-between rounded-lg border px-3 py-2 text-[11px] font-semibold ${headerClass}`}>
+          <span className="uppercase tracking-[0.08em]">{typeLabels[node.type]}</span>
+          <span className="text-[10px] font-medium text-slate-600">{node.code || "—"}</span>
+        </div>
         <div className="flex items-center gap-3 rounded-xl border border-slate-200/80 bg-gradient-to-r from-white via-slate-50 to-white px-3.5 py-2.5 shadow-sm transition hover:-translate-y-[1px] hover:border-slate-300 hover:shadow-md">
           {hasChildren ? (
             <button
@@ -592,9 +610,6 @@ export default function ChartOfAccountsPage() {
             </span>
           </div>
           <div className="ml-auto flex items-center gap-2">
-            <span className="rounded-full bg-slate-100 px-2 py-0.5 font-mono text-[10px] text-slate-700 shadow-inner">
-              {node.code || "—"}
-            </span>
             {renderStatus(node.status)}
             <Button
               variant="outline"
@@ -608,9 +623,49 @@ export default function ChartOfAccountsPage() {
             <AddAction node={node} />
           </div>
         </div>
-        {hasChildren && (isExpanded || hasTreeSearch) && (
+        {isControl && glChildren.length > 0 && (isExpanded || hasTreeSearch) && (
+          <div className="mt-2 rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="flex items-center justify-between rounded-t-xl border-b border-slate-200 bg-emerald-50 px-3 py-2 text-[11px] font-semibold text-emerald-900">
+              <span>GL Accounts</span>
+              <span className="text-[10px] font-medium text-emerald-800">{glChildren.length} items</span>
+            </div>
+            <div className="overflow-auto">
+              <table className="min-w-full text-[11px]">
+                <thead className="bg-slate-50 text-left text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-600">
+                  <tr>
+                    <th className="px-3 py-2">GL Title</th>
+                    <th className="px-3 py-2">Manual Code</th>
+                    <th className="px-3 py-2">Status</th>
+                    <th className="px-3 py-2 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {glChildren.map((gl, idx) => (
+                    <tr key={gl.id} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/60"}>
+                      <td className="px-3 py-2 text-slate-900">{gl.title}</td>
+                      <td className="px-3 py-2 font-mono text-slate-700">{gl.manualCode || "—"}</td>
+                      <td className="px-3 py-2">{renderStatus(gl.status)}</td>
+                      <td className="px-3 py-2 text-right">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 px-2 text-[11px] border-slate-200 hover:border-slate-300"
+                          onClick={() => handleEditNode(gl)}
+                        >
+                          <Edit3 className="mr-1 h-3.5 w-3.5" />
+                          Edit
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+        {otherChildren.length > 0 && (isExpanded || hasTreeSearch) && (
           <div className="space-y-2 border-l border-slate-200 pl-4">
-            {node.children!.map((child) => (
+            {otherChildren.map((child) => (
               <TreeRow key={child.id} node={child} depth={depth + 1} />
             ))}
           </div>
@@ -618,6 +673,192 @@ export default function ChartOfAccountsPage() {
       </div>
     )
   }
+
+  const [expandedClasses, setExpandedClasses] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(initialClasses.map((c) => [c.id, true])),
+  )
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
+  const [expandedSubGroups, setExpandedSubGroups] = useState<Record<string, boolean>>({})
+  const [expandedControls, setExpandedControls] = useState<Record<string, boolean>>({})
+
+  const toggleExpand = (id: string, setter: React.Dispatch<React.SetStateAction<Record<string, boolean>>>) => {
+    setter((prev) => ({ ...prev, [id]: !prev[id] }))
+  }
+
+  const renderControlSection = (control: ControlItem) => {
+    const controlGl = glAccounts.filter((gl) => gl.controlId === control.id)
+    return (
+      <div key={control.id} className="rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="flex items-center justify-between border-b border-slate-200 bg-amber-50 px-3 py-2 text-[11px] font-semibold text-amber-900">
+          <span>{composeCode(classes.find((c) => c.id === classes.find((c2) => c2.id === groups.find((g) => g.id === subGroups.find((sg) => sg.id === control.subGroupId)?.groupId)?.classId)?.id), groups.find((g) => g.id === subGroups.find((sg) => sg.id === control.subGroupId)?.groupId), subGroups.find((sg) => sg.id === control.subGroupId), control) || "-"}</span>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" className="h-8 px-2 text-[11px]" onClick={() => openNewGl(control.id)}>
+              <Plus className="mr-1 h-3.5 w-3.5" />
+              Add GL
+            </Button>
+          </div>
+        </div>
+        <div className="overflow-auto">
+          <table className="min-w-full text-[11px]">
+            <thead className="bg-slate-50 text-left text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-600">
+              <tr>
+                <th className="px-3 py-2">GL Title</th>
+                <th className="px-3 py-2">Manual Code</th>
+                <th className="px-3 py-2">Status</th>
+                <th className="px-3 py-2 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {controlGl.map((gl, idx) => (
+                <tr key={gl.id} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/60"}>
+                  <td className="px-3 py-2 text-slate-900">{gl.title}</td>
+                  <td className="px-3 py-2 font-mono text-slate-700">{gl.manualCode || "-"}</td>
+                  <td className="px-3 py-2">{renderStatus(gl.status)}</td>
+                  <td className="px-3 py-2 text-right">
+                    <Button variant="outline" size="sm" className="h-8 px-2 text-[11px]" onClick={() => handleEditNode({ ...gl, type: "gl" } as any)}>
+                      <Edit3 className="mr-1 h-3.5 w-3.5" />
+                      Edit
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    )
+  }
+
+  const renderClassHierarchy = () => (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between rounded-lg border border-rose-100 bg-rose-50 px-3 py-2 text-[11px] font-semibold text-rose-900">
+        <span>Class Name</span>
+        <Button variant="outline" size="sm" className="h-8 px-2 text-[11px]" onClick={() => openNewClass()}>
+          <Plus className="mr-1 h-3.5 w-3.5" />
+          Add Class
+        </Button>
+      </div>
+      <div className="space-y-2">
+        {classes.map((cls) => (
+          <div key={cls.id} className="rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="flex items-center justify-between px-3 py-2 text-[11px]">
+              <div className="flex items-center gap-2">
+                <button
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-100"
+                  onClick={() => toggleExpand(cls.id, setExpandedClasses)}
+                >
+                  {expandedClasses[cls.id] ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                </button>
+                <div className="flex flex-col">
+                  <span className="text-[12px] font-semibold text-slate-900">{cls.manualCode || "-"} :: {cls.title}</span>
+                  <span className="text-[10px] text-slate-500">Click “Add Group” above to place groups under this class.</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {renderStatus(cls.status)}
+              </div>
+            </div>
+            {expandedClasses[cls.id] && (
+              <div className="space-y-2 border-t border-slate-100 bg-purple-50/30 px-3 py-2">
+                <div className="flex items-center justify-between rounded-md bg-purple-50 px-3 py-1.5 text-[11px] font-semibold text-purple-900">
+                  <span>Group Name</span>
+                  <Button variant="outline" size="sm" className="h-8 px-2 text-[11px]" onClick={() => openNewGroup(cls.id)}>
+                    <Plus className="mr-1 h-3.5 w-3.5" />
+                    Add Group
+                  </Button>
+                </div>
+                {groups
+                  .filter((g) => g.classId === cls.id)
+                  .map((g) => (
+                    <div key={g.id} className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+                      <div className="flex items-center justify-between text-[11px]">
+                        <div className="flex items-center gap-2">
+                          <button
+                            className="flex h-7 w-7 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-100"
+                            onClick={() => toggleExpand(g.id, setExpandedGroups)}
+                          >
+                            {expandedGroups[g.id] ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                          </button>
+                          <span className="font-semibold text-slate-900">{composeCode(cls, g) || "-"} :: {g.title}</span>
+                          <span className="text-[10px] text-slate-500">Use “Add Sub Group” to place children here.</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {renderStatus(g.status)}
+                        </div>
+                      </div>
+                      {expandedGroups[g.id] && (
+                        <div className="mt-2 space-y-2 rounded-md bg-sky-50/40 px-3 py-2">
+                          <div className="flex items-center justify-between rounded-md bg-sky-50 px-3 py-1.5 text-[11px] font-semibold text-sky-900">
+                            <span>SubGroup Name</span>
+                            <Button variant="outline" size="sm" className="h-8 px-2 text-[11px]" onClick={() => openNewSubGroup(g.id)}>
+                              <Plus className="mr-1 h-3.5 w-3.5" />
+                              Add Sub Group
+                            </Button>
+                          </div>
+                          {subGroups
+                            .filter((sg) => sg.groupId === g.id)
+                            .map((sg) => (
+                              <div key={sg.id} className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+                                <div className="flex items-center justify-between text-[11px]">
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      className="flex h-7 w-7 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-100"
+                                      onClick={() => toggleExpand(sg.id, setExpandedSubGroups)}
+                                    >
+                                      {expandedSubGroups[sg.id] ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                                    </button>
+                                  <span className="font-semibold text-slate-900">{composeCode(cls, g, sg) || "-"} :: {sg.title}</span>
+                                  <span className="text-[10px] text-slate-500">“Add Control” attaches controls under this sub group.</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {renderStatus(sg.status)}
+                                </div>
+                              </div>
+                                {expandedSubGroups[sg.id] && (
+                                  <div className="mt-2 space-y-2 rounded-md bg-amber-50/50 px-3 py-2">
+                                    <div className="flex items-center justify-between rounded-md bg-amber-50 px-3 py-1.5 text-[11px] font-semibold text-amber-900">
+                                      <span>Control Name</span>
+                                      <Button variant="outline" size="sm" className="h-8 px-2 text-[11px]" onClick={() => openNewControl(sg.id)}>
+                                        <Plus className="mr-1 h-3.5 w-3.5" />
+                                        Add Control
+                                      </Button>
+                                    </div>
+                                    {controls
+                                      .filter((ctl) => ctl.subGroupId === sg.id)
+                                      .map((ctl) => (
+                                        <div key={ctl.id} className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+                                          <div className="flex items-center justify-between text-[11px]">
+                                            <div className="flex items-center gap-2">
+                                              <button
+                                                className="flex h-7 w-7 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-100"
+                                                onClick={() => toggleExpand(ctl.id, setExpandedControls)}
+                                              >
+                                                {expandedControls[ctl.id] ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                                              </button>
+                                              <span className="font-semibold text-slate-900">{composeCode(cls, g, sg, ctl) || "-"} :: {ctl.title}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                              {renderStatus(ctl.status)}
+                                            </div>
+                                          </div>
+                                          {expandedControls[ctl.id] && renderControlSection(ctl)}
+                                        </div>
+                                      ))}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
 
   return (
     <div className="flex min-h-screen bg-slate-50">
@@ -650,8 +891,8 @@ export default function ChartOfAccountsPage() {
           <Card className="border-slate-200 shadow-sm">
             <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="space-y-1">
-                <CardTitle className="text-sm text-slate-900">Chart of Accounts Tree</CardTitle>
-                <p className="text-xs text-slate-500">Search, expand, and add accounts in context. Click Add at any level to create that exact type.</p>
+                <CardTitle className="text-sm text-slate-900">Chart of Accounts</CardTitle>
+                <p className="text-xs text-slate-500">One header per level. Expand to drill in, use the header Add buttons to place children in the right spot.</p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <Input
@@ -660,45 +901,15 @@ export default function ChartOfAccountsPage() {
                   onChange={(e) => setTreeSearch(e.target.value)}
                   className="h-9 w-56 text-[11px]"
                 />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-9 px-3 text-[11px] border-slate-300"
-                  onClick={expandAllNodes}
-                >
+                <Button variant="outline" size="sm" className="h-9 px-3 text-[11px] border-slate-300" onClick={expandAllNodes}>
                   Expand all
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-9 px-3 text-[11px] border-slate-300"
-                  onClick={collapseAllNodes}
-                >
+                <Button variant="outline" size="sm" className="h-9 px-3 text-[11px] border-slate-300" onClick={collapseAllNodes}>
                   Collapse all
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-9 px-3 text-[11px] border-slate-300"
-                  onClick={() => openNewGl()}
-                >
-                  <Plus className="mr-1 h-3.5 w-3.5" />
-                  Add GL
-                </Button>
-                <Button
-                  style={{ backgroundColor: accent }}
-                  size="sm"
-                  className="h-9 px-4 text-white text-[11px]"
-                  onClick={() => {
-                    openNewClass()
-                  }}
-                >
-                  <Plus className="mr-1 h-3.5 w-3.5" />
-                  Add Class
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
                 {[
                   { label: "Classes", value: totals.classes },
@@ -716,26 +927,11 @@ export default function ChartOfAccountsPage() {
                   </div>
                 ))}
               </div>
-              <div className="flex flex-wrap gap-2 rounded-lg border border-slate-200/80 bg-gradient-to-r from-slate-50 via-white to-slate-50 px-3 py-2 text-[11px] text-slate-600 shadow-sm">
-                <span className="font-semibold text-slate-700">Tips:</span>
-                <span>Use search to spotlight titles or manual codes.</span>
-                <span>Expand all to scan, then collapse to focus.</span>
-                <span>Add is scoped to the level you click (Class, Group, Sub Group, Control, GL).</span>
+              <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+                {renderClassHierarchy()}
               </div>
-              {filteredTree.length > 0 ? (
-                <div className="space-y-2">
-                  {filteredTree.map((node) => (
-                    <TreeRow key={node.id} node={node} depth={0} />
-                  ))}
-                </div>
-              ) : (
-                <div className="rounded-md border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-xs text-slate-500">
-                  No accounts match your search.
-                </div>
-              )}
             </CardContent>
           </Card>
-
         </div>
 
         {/* Dialogs */}
@@ -1072,3 +1268,5 @@ export default function ChartOfAccountsPage() {
     </div>
   )
 }
+
+
