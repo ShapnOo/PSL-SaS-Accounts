@@ -1,6 +1,6 @@
 ﻿"use client"
 
-import { useState } from "react"
+import { useState, type Dispatch, type SetStateAction } from "react"
 import { ToggleLeft, ToggleRight, Menu, ChevronRight, ChevronDown, Plus, Edit3 } from "lucide-react"
 
 import { Sidebar } from "@/components/sidebar"
@@ -120,16 +120,80 @@ const initialControls: ControlItem[] = [
 ]
 
 const initialGlAccounts: GlAccount[] = [
-  { id: "gl-1", controlId: "ctl-1", title: "Cash Drawer", manualCode: "11010101", status: "Active" },
-  { id: "gl-2", controlId: "ctl-2", title: "Bank Checking 1", manualCode: "11110101", status: "Active" },
-  { id: "gl-3", controlId: "ctl-3", title: "Receivable Customer X", manualCode: "11210101", status: "Active" },
-  { id: "gl-4", controlId: "ctl-4", title: "Inventory Item A", manualCode: "11310101", status: "Active" },
-  { id: "gl-5", controlId: "ctl-5", title: "Prepaid Insurance 2025", manualCode: "11410101", status: "Active" },
-  { id: "gl-6", controlId: "ctl-6", title: "Laptop Pool", manualCode: "11510101", status: "Active" },
-  { id: "gl-7", controlId: "ctl-7", title: "T-Bill 90 Day", manualCode: "11610101", status: "Active" },
-  { id: "gl-8", controlId: "ctl-8", title: "Equity Stake ABC", manualCode: "11710101", status: "Active" },
-  { id: "gl-9", controlId: "ctl-9", title: "Deferred Software Q1", manualCode: "11810101", status: "Active" },
-  { id: "gl-10", controlId: "ctl-10", title: "Misc Asset Holding", manualCode: "11910101", status: "Active" },
+  // Main Cash (ctl-1)
+  { id: "gl-1", controlId: "ctl-1", title: "Cash Drawer A", manualCode: "11010101", status: "Active" },
+  { id: "gl-2", controlId: "ctl-1", title: "Cash Drawer B", manualCode: "11010102", status: "Active" },
+  { id: "gl-3", controlId: "ctl-1", title: "Cash Vault", manualCode: "11010103", status: "Active" },
+  { id: "gl-4", controlId: "ctl-1", title: "Cash Transit", manualCode: "11010104", status: "Active" },
+  { id: "gl-5", controlId: "ctl-1", title: "Cash Petty", manualCode: "11010105", status: "Active" },
+  { id: "gl-6", controlId: "ctl-1", title: "Cash Change Fund", manualCode: "11010106", status: "Active" },
+  { id: "gl-7", controlId: "ctl-1", title: "Cash Reserve A", manualCode: "11010107", status: "Active" },
+  { id: "gl-8", controlId: "ctl-1", title: "Cash Reserve B", manualCode: "11010108", status: "Active" },
+  { id: "gl-9", controlId: "ctl-1", title: "Cash Foreign Currency", manualCode: "11010109", status: "Active" },
+  { id: "gl-10", controlId: "ctl-1", title: "Cash Suspense", manualCode: "11010110", status: "Active" },
+
+  // Operating Bank (ctl-2)
+  { id: "gl-21", controlId: "ctl-2", title: "Bank Checking 1", manualCode: "11110101", status: "Active" },
+  { id: "gl-22", controlId: "ctl-2", title: "Bank Checking 2", manualCode: "11110102", status: "Active" },
+  { id: "gl-23", controlId: "ctl-2", title: "Bank Checking 3", manualCode: "11110103", status: "Active" },
+  { id: "gl-24", controlId: "ctl-2", title: "Bank Savings 1", manualCode: "11110104", status: "Active" },
+  { id: "gl-25", controlId: "ctl-2", title: "Bank Savings 2", manualCode: "11110105", status: "Active" },
+
+  // Receivable Client A (ctl-3)
+  { id: "gl-31", controlId: "ctl-3", title: "Invoice A1001", manualCode: "11210101", status: "Active" },
+  { id: "gl-32", controlId: "ctl-3", title: "Invoice A1002", manualCode: "11210102", status: "Active" },
+  { id: "gl-33", controlId: "ctl-3", title: "Invoice A1003", manualCode: "11210103", status: "Active" },
+  { id: "gl-34", controlId: "ctl-3", title: "Invoice A1004", manualCode: "11210104", status: "Active" },
+  { id: "gl-35", controlId: "ctl-3", title: "Invoice A1005", manualCode: "11210105", status: "Active" },
+
+  // Inventory Warehouse A (ctl-4)
+  { id: "gl-41", controlId: "ctl-4", title: "Inventory Batch 1", manualCode: "11310101", status: "Active" },
+  { id: "gl-42", controlId: "ctl-4", title: "Inventory Batch 2", manualCode: "11310102", status: "Active" },
+  { id: "gl-43", controlId: "ctl-4", title: "Inventory Batch 3", manualCode: "11310103", status: "Active" },
+  { id: "gl-44", controlId: "ctl-4", title: "Inventory Batch 4", manualCode: "11310104", status: "Active" },
+  { id: "gl-45", controlId: "ctl-4", title: "Inventory Batch 5", manualCode: "11310105", status: "Active" },
+
+  // Prepaid Insurance (ctl-5)
+  { id: "gl-51", controlId: "ctl-5", title: "Prepaid Insurance Q1", manualCode: "11410101", status: "Active" },
+  { id: "gl-52", controlId: "ctl-5", title: "Prepaid Insurance Q2", manualCode: "11410102", status: "Active" },
+  { id: "gl-53", controlId: "ctl-5", title: "Prepaid Insurance Q3", manualCode: "11410103", status: "Active" },
+  { id: "gl-54", controlId: "ctl-5", title: "Prepaid Insurance Q4", manualCode: "11410104", status: "Active" },
+  { id: "gl-55", controlId: "ctl-5", title: "Prepaid Insurance Annual", manualCode: "11410105", status: "Active" },
+
+  // Laptops & IT (ctl-6)
+  { id: "gl-61", controlId: "ctl-6", title: "Laptop Pool A", manualCode: "11510101", status: "Active" },
+  { id: "gl-62", controlId: "ctl-6", title: "Laptop Pool B", manualCode: "11510102", status: "Active" },
+  { id: "gl-63", controlId: "ctl-6", title: "Laptop Pool C", manualCode: "11510103", status: "Active" },
+  { id: "gl-64", controlId: "ctl-6", title: "IT Spares Kit", manualCode: "11510104", status: "Active" },
+  { id: "gl-65", controlId: "ctl-6", title: "Accessories Stock", manualCode: "11510105", status: "Active" },
+
+  // T-Bills Short Term (ctl-7)
+  { id: "gl-71", controlId: "ctl-7", title: "T-Bill 90 Day", manualCode: "11610101", status: "Active" },
+  { id: "gl-72", controlId: "ctl-7", title: "T-Bill 180 Day", manualCode: "11610102", status: "Active" },
+  { id: "gl-73", controlId: "ctl-7", title: "T-Bill 270 Day", manualCode: "11610103", status: "Active" },
+  { id: "gl-74", controlId: "ctl-7", title: "T-Bill 365 Day", manualCode: "11610104", status: "Active" },
+  { id: "gl-75", controlId: "ctl-7", title: "T-Bill Ladder", manualCode: "11610105", status: "Active" },
+
+  // Equity Investment (ctl-8)
+  { id: "gl-81", controlId: "ctl-8", title: "Equity Stake ABC", manualCode: "11710101", status: "Active" },
+  { id: "gl-82", controlId: "ctl-8", title: "Equity Stake XYZ", manualCode: "11710102", status: "Active" },
+  { id: "gl-83", controlId: "ctl-8", title: "Equity Stake LMN", manualCode: "11710103", status: "Active" },
+  { id: "gl-84", controlId: "ctl-8", title: "Equity Stake OPQ", manualCode: "11710104", status: "Active" },
+  { id: "gl-85", controlId: "ctl-8", title: "Equity Stake RST", manualCode: "11710105", status: "Active" },
+
+  // Deferred Software (ctl-9)
+  { id: "gl-91", controlId: "ctl-9", title: "Deferred Software Q1", manualCode: "11810101", status: "Active" },
+  { id: "gl-92", controlId: "ctl-9", title: "Deferred Software Q2", manualCode: "11810102", status: "Active" },
+  { id: "gl-93", controlId: "ctl-9", title: "Deferred Software Q3", manualCode: "11810103", status: "Active" },
+  { id: "gl-94", controlId: "ctl-9", title: "Deferred Software Q4", manualCode: "11810104", status: "Active" },
+  { id: "gl-95", controlId: "ctl-9", title: "Deferred Software Annual", manualCode: "11810105", status: "Active" },
+
+  // Misc Asset (ctl-10)
+  { id: "gl-101", controlId: "ctl-10", title: "Misc Asset A", manualCode: "11910101", status: "Active" },
+  { id: "gl-102", controlId: "ctl-10", title: "Misc Asset B", manualCode: "11910102", status: "Active" },
+  { id: "gl-103", controlId: "ctl-10", title: "Misc Asset C", manualCode: "11910103", status: "Active" },
+  { id: "gl-104", controlId: "ctl-10", title: "Misc Asset D", manualCode: "11910104", status: "Active" },
+  { id: "gl-105", controlId: "ctl-10", title: "Misc Asset E", manualCode: "11910105", status: "Active" },
 ]
 
 function uid(prefix: string) {
@@ -717,7 +781,7 @@ export default function ChartOfAccountsPage() {
   const [expandedSubGroups, setExpandedSubGroups] = useState<Record<string, boolean>>({})
   const [expandedControls, setExpandedControls] = useState<Record<string, boolean>>({})
 
-  const toggleExpand = (id: string, setter: React.Dispatch<React.SetStateAction<Record<string, boolean>>>) => {
+  const toggleExpand = (id: string, setter: Dispatch<SetStateAction<Record<string, boolean>>>) => {
     setter((prev) => ({ ...prev, [id]: !prev[id] }))
   }
 
@@ -726,7 +790,7 @@ export default function ChartOfAccountsPage() {
     return (
       <div key={control.id} className="rounded-xl border border-slate-200 bg-white shadow-sm">
         <div className="flex items-center justify-between border-b border-slate-200 bg-cyan-50 px-3 py-2 text-[11px] font-semibold text-cyan-900">
-          <span>{composeCode(classes.find((c) => c.id === classes.find((c2) => c2.id === groups.find((g) => g.id === subGroups.find((sg) => sg.id === control.subGroupId)?.groupId)?.classId)?.id), groups.find((g) => g.id === subGroups.find((sg) => sg.id === control.subGroupId)?.groupId), subGroups.find((sg) => sg.id === control.subGroupId), control) || "-"}</span>
+          <span>GL Account</span>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" className="h-8 px-2 text-[11px]" onClick={() => openNewGl(control.id)}>
               <Plus className="mr-1 h-3.5 w-3.5" />
@@ -787,7 +851,6 @@ export default function ChartOfAccountsPage() {
                 </button>
                 <div className="flex flex-col">
                   <span className="text-[12px] font-semibold text-slate-900">{cls.manualCode || "-"} :: {cls.title}</span>
-                  <span className="text-[10px] text-slate-500">Click “Add Group” above to place groups under this class.</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -816,7 +879,6 @@ export default function ChartOfAccountsPage() {
                             {expandedGroups[g.id] ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
                           </button>
                           <span className="font-semibold text-slate-900">{composeCode(cls, g) || "-"} :: {g.title}</span>
-                          <span className="text-[10px] text-slate-500">Use “Add Sub Group” to place children here.</span>
                         </div>
                 <div className="flex items-center gap-2">
                   {renderStatus(g.status)}
@@ -856,7 +918,6 @@ export default function ChartOfAccountsPage() {
                                       {expandedSubGroups[sg.id] ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
                                     </button>
                                     <span className="font-semibold text-slate-900">{composeCode(cls, g, sg) || "-"} :: {sg.title}</span>
-                                    <span className="text-[10px] text-slate-500">"Add Control" attaches controls under this sub group.</span>
                                   </div>
                                   <div className="flex items-center gap-2">
                                     {renderStatus(sg.status)}
@@ -1440,5 +1501,3 @@ export default function ChartOfAccountsPage() {
     </div>
   )
 }
-
-

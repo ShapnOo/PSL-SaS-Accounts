@@ -180,6 +180,7 @@ const controls: ControlOpt[] = [
 
 const initialGlAccounts: GlAccount[] = [
   { id: "gl-1", controlId: "ctl-1", title: "Cash Drawer A", manualCode: "1111001", status: "Active" },
+  { id: "gl-1", controlId: "ctl-1", title: "Cash Drawer B", manualCode: "1111002", status: "Active" },
   { id: "gl-2", controlId: "ctl-2", title: "Bank Account Main", manualCode: "1112001", status: "Active" },
   { id: "gl-3", controlId: "ctl-3", title: "Petty Cash Office", manualCode: "1112101", status: "Active" },
   { id: "gl-4", controlId: "ctl-4", title: "Office Building 1", manualCode: "1211001", status: "Active" },
