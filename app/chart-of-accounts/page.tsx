@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Edit3, ToggleLeft, ToggleRight, Menu, Expand, Minimize, ChevronsUpDown, Check } from "lucide-react"
+import { ToggleLeft, ToggleRight, Menu, ChevronRight, ChevronDown, Plus, Edit3 } from "lucide-react"
 
 import { Sidebar } from "@/components/sidebar"
 import { Button } from "@/components/ui/button"
@@ -9,8 +9,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 
 const accent = "#1B254D"
 
@@ -55,6 +53,20 @@ interface GlAccount {
   status: Status
 }
 
+type TreeNodeItem = {
+  id: string
+  title: string
+  manualCode: string
+  status: Status
+  code: string
+  type: "class" | "group" | "subGroup" | "control" | "gl"
+  classId?: string
+  groupId?: string
+  subGroupId?: string
+  controlId?: string
+  children?: TreeNodeItem[]
+}
+
 const initialClasses: ClassItem[] = [
   { id: "cls-1", title: "Assets", manualCode: "1000", status: "Active" },
   { id: "cls-2", title: "Liabilities", manualCode: "2000", status: "Active" },
@@ -62,182 +74,69 @@ const initialClasses: ClassItem[] = [
   { id: "cls-4", title: "Revenue", manualCode: "4000", status: "Active" },
   { id: "cls-5", title: "Expenses", manualCode: "5000", status: "Active" },
   { id: "cls-6", title: "Other Income", manualCode: "4100", status: "Active" },
-  { id: "cls-7", title: "Other Expenses", manualCode: "5100", status: "Active" },
-  { id: "cls-8", title: "Fixed Assets", manualCode: "1200", status: "Active" },
-  { id: "cls-9", title: "Investments", manualCode: "1300", status: "Active" },
-  { id: "cls-10", title: "Deferred Assets", manualCode: "1400", status: "Active" },
-  { id: "cls-11", title: "Deferred Liabilities", manualCode: "2400", status: "Active" },
-  { id: "cls-12", title: "Long-term Liabilities", manualCode: "2300", status: "Active" },
-  { id: "cls-13", title: "Short-term Liabilities", manualCode: "2100", status: "Active" },
-  { id: "cls-14", title: "Capital", manualCode: "3100", status: "Active" },
-  { id: "cls-15", title: "Reserves", manualCode: "3200", status: "Active" },
-  { id: "cls-16", title: "Sales", manualCode: "4200", status: "Active" },
-  { id: "cls-17", title: "Service Income", manualCode: "4300", status: "Active" },
-  { id: "cls-18", title: "COGS", manualCode: "5200", status: "Active" },
-  { id: "cls-19", title: "Operating Expenses", manualCode: "5300", status: "Active" },
-  { id: "cls-20", title: "Non-operating Expenses", manualCode: "5400", status: "Active" },
-  { id: "cls-21", title: "Payroll", manualCode: "5500", status: "Active" },
-  { id: "cls-22", title: "Taxes", manualCode: "5600", status: "Active" },
-  { id: "cls-23", title: "Accruals", manualCode: "5700", status: "Active" },
-  { id: "cls-24", title: "Prepayments", manualCode: "5800", status: "Active" },
-  { id: "cls-25", title: "Loans", manualCode: "5900", status: "Active" },
-  { id: "cls-26", title: "Inventory", manualCode: "1500", status: "Active" },
-  { id: "cls-27", title: "Receivables", manualCode: "1600", status: "Active" },
-  { id: "cls-28", title: "Payables", manualCode: "2600", status: "Active" },
-  { id: "cls-29", title: "Accrued Revenue", manualCode: "1700", status: "Active" },
-  { id: "cls-30", title: "Accrued Expenses", manualCode: "2700", status: "Active" },
-  { id: "cls-31", title: "Deferred Revenue", manualCode: "1800", status: "Active" },
-  { id: "cls-32", title: "Deferred Expense", manualCode: "2800", status: "Active" },
+  { id: "cls-7", title: "Other Expense", manualCode: "5100", status: "Active" },
+  { id: "cls-8", title: "Inventory", manualCode: "1500", status: "Active" },
+  { id: "cls-9", title: "Fixed Assets", manualCode: "1200", status: "Active" },
+  { id: "cls-10", title: "Payroll", manualCode: "5500", status: "Active" },
 ]
 
 const initialGroups: GroupItem[] = [
   { id: "grp-1", classId: "cls-1", title: "Current Assets", manualCode: "1100", status: "Active" },
-  { id: "grp-2", classId: "cls-8", title: "Property Plant Equipment", manualCode: "1210", status: "Active" },
-  { id: "grp-3", classId: "cls-26", title: "Inventory", manualCode: "1510", status: "Active" },
-  { id: "grp-4", classId: "cls-27", title: "Accounts Receivable", manualCode: "1610", status: "Active" },
-  { id: "grp-5", classId: "cls-2", title: "Current Liabilities", manualCode: "2110", status: "Active" },
-  { id: "grp-6", classId: "cls-12", title: "Long-term Debt", manualCode: "2310", status: "Active" },
-  { id: "grp-7", classId: "cls-14", title: "Share Capital", manualCode: "3110", status: "Active" },
-  { id: "grp-8", classId: "cls-15", title: "Retained Earnings", manualCode: "3210", status: "Active" },
-  { id: "grp-9", classId: "cls-16", title: "Domestic Sales", manualCode: "4210", status: "Active" },
-  { id: "grp-10", classId: "cls-17", title: "Service Revenue", manualCode: "4310", status: "Active" },
-  { id: "grp-11", classId: "cls-18", title: "Cost of Goods Sold", manualCode: "5210", status: "Active" },
-  { id: "grp-12", classId: "cls-19", title: "Admin Expenses", manualCode: "5310", status: "Active" },
-  { id: "grp-13", classId: "cls-20", title: "Marketing Expenses", manualCode: "5410", status: "Active" },
-  { id: "grp-14", classId: "cls-21", title: "Salaries & Wages", manualCode: "5510", status: "Active" },
-  { id: "grp-15", classId: "cls-22", title: "Tax Payable", manualCode: "5610", status: "Active" },
-  { id: "grp-16", classId: "cls-23", title: "Accrued Liabilities", manualCode: "5710", status: "Active" },
-  { id: "grp-17", classId: "cls-24", title: "Prepaid Expenses", manualCode: "5810", status: "Active" },
-  { id: "grp-18", classId: "cls-25", title: "Short-term Loans", manualCode: "5910", status: "Active" },
-  { id: "grp-19", classId: "cls-9", title: "Long-term Investments", manualCode: "1310", status: "Active" },
-  { id: "grp-20", classId: "cls-10", title: "Deferred Charges", manualCode: "1410", status: "Active" },
-  { id: "grp-21", classId: "cls-11", title: "Deferred Tax Liability", manualCode: "2410", status: "Active" },
-  { id: "grp-22", classId: "cls-13", title: "Accrued Liabilities Short-term", manualCode: "2120", status: "Active" },
-  { id: "grp-23", classId: "cls-6", title: "Misc Income", manualCode: "4110", status: "Active" },
-  { id: "grp-24", classId: "cls-7", title: "Misc Expenses", manualCode: "5110", status: "Active" },
-  { id: "grp-25", classId: "cls-28", title: "Trade Payables", manualCode: "2610", status: "Active" },
-  { id: "grp-26", classId: "cls-31", title: "Deferred Revenue", manualCode: "1810", status: "Active" },
-  { id: "grp-27", classId: "cls-32", title: "Deferred Expense", manualCode: "2810", status: "Active" },
-  { id: "grp-28", classId: "cls-3", title: "Member Equity", manualCode: "3010", status: "Active" },
-  { id: "grp-29", classId: "cls-4", title: "Product Revenue", manualCode: "4010", status: "Active" },
-  { id: "grp-30", classId: "cls-5", title: "Operating Expenses General", manualCode: "5010", status: "Active" },
-  { id: "grp-31", classId: "cls-30", title: "Accrued Expenses Current", manualCode: "2710", status: "Active" },
+  { id: "grp-2", classId: "cls-1", title: "Cash & Bank", manualCode: "1110", status: "Active" },
+  { id: "grp-3", classId: "cls-2", title: "Current Liabilities", manualCode: "2100", status: "Active" },
+  { id: "grp-4", classId: "cls-2", title: "Long-term Debt", manualCode: "2300", status: "Active" },
+  { id: "grp-5", classId: "cls-3", title: "Share Capital", manualCode: "3100", status: "Active" },
+  { id: "grp-6", classId: "cls-4", title: "Sales Domestic", manualCode: "4100", status: "Active" },
+  { id: "grp-7", classId: "cls-4", title: "Service Revenue", manualCode: "4300", status: "Active" },
+  { id: "grp-8", classId: "cls-5", title: "Operating Expenses", manualCode: "5100", status: "Active" },
+  { id: "grp-9", classId: "cls-8", title: "Inventory", manualCode: "1510", status: "Active" },
+  { id: "grp-10", classId: "cls-9", title: "Fixed Assets Group", manualCode: "1210", status: "Active" },
 ]
 
 const initialSubGroups: SubGroupItem[] = [
-  { id: "sub-1", groupId: "grp-1", title: "Cash & Bank", manualCode: "1110", status: "Active" },
-  { id: "sub-2", groupId: "grp-1", title: "Petty Cash", manualCode: "1111", status: "Active" },
-  { id: "sub-3", groupId: "grp-2", title: "Buildings", manualCode: "1211", status: "Active" },
-  { id: "sub-4", groupId: "grp-2", title: "Equipment", manualCode: "1212", status: "Active" },
-  { id: "sub-5", groupId: "grp-3", title: "Finished Goods", manualCode: "1511", status: "Active" },
-  { id: "sub-6", groupId: "grp-3", title: "Raw Materials", manualCode: "1512", status: "Active" },
-  { id: "sub-7", groupId: "grp-4", title: "Trade Debtors", manualCode: "1611", status: "Active" },
-  { id: "sub-8", groupId: "grp-5", title: "Trade Creditors", manualCode: "2111", status: "Active" },
-  { id: "sub-9", groupId: "grp-5", title: "Accrued Liabilities", manualCode: "2112", status: "Active" },
-  { id: "sub-10", groupId: "grp-6", title: "Bank Loans", manualCode: "2311", status: "Active" },
-  { id: "sub-11", groupId: "grp-7", title: "Common Stock", manualCode: "3111", status: "Active" },
-  { id: "sub-12", groupId: "grp-8", title: "Retained Earnings", manualCode: "3211", status: "Active" },
-  { id: "sub-13", groupId: "grp-9", title: "Local Sales", manualCode: "4211", status: "Active" },
-  { id: "sub-14", groupId: "grp-10", title: "Consulting", manualCode: "4311", status: "Active" },
-  { id: "sub-15", groupId: "grp-11", title: "COGS - Materials", manualCode: "5211", status: "Active" },
-  { id: "sub-16", groupId: "grp-12", title: "Rent Expense", manualCode: "5311", status: "Active" },
-  { id: "sub-17", groupId: "grp-13", title: "Ad Spend", manualCode: "5411", status: "Active" },
-  { id: "sub-18", groupId: "grp-14", title: "Salaries", manualCode: "5511", status: "Active" },
-  { id: "sub-19", groupId: "grp-15", title: "Income Tax", manualCode: "5611", status: "Active" },
-  { id: "sub-20", groupId: "grp-16", title: "Accruals", manualCode: "5711", status: "Active" },
-  { id: "sub-21", groupId: "grp-17", title: "Prepaid Insurance", manualCode: "5811", status: "Active" },
-  { id: "sub-22", groupId: "grp-18", title: "Short Term Loan", manualCode: "5911", status: "Active" },
-  { id: "sub-23", groupId: "grp-19", title: "Bonds", manualCode: "1311", status: "Active" },
-  { id: "sub-24", groupId: "grp-20", title: "Deferred Charges", manualCode: "1411", status: "Active" },
-  { id: "sub-25", groupId: "grp-21", title: "Deferred Tax", manualCode: "2411", status: "Active" },
-  { id: "sub-26", groupId: "grp-22", title: "Accrued Expenses", manualCode: "2121", status: "Active" },
-  { id: "sub-27", groupId: "grp-23", title: "Misc Income", manualCode: "4111", status: "Active" },
-  { id: "sub-28", groupId: "grp-24", title: "Misc Expenses", manualCode: "5111", status: "Active" },
-  { id: "sub-29", groupId: "grp-25", title: "Trade Payables", manualCode: "2611", status: "Active" },
-  { id: "sub-30", groupId: "grp-26", title: "Deferred Revenue", manualCode: "1811", status: "Active" },
-  { id: "sub-31", groupId: "grp-27", title: "Deferred Expense", manualCode: "2811", status: "Active" },
-  { id: "sub-32", groupId: "grp-28", title: "Member Equity", manualCode: "3011", status: "Active" },
-  { id: "sub-33", groupId: "grp-29", title: "Online Sales", manualCode: "4011", status: "Active" },
-  { id: "sub-34", groupId: "grp-30", title: "General Opex", manualCode: "5011", status: "Active" },
-  { id: "sub-35", groupId: "grp-31", title: "Accrued Expenses Current", manualCode: "2711", status: "Active" },
+  { id: "sub-1", groupId: "grp-2", title: "Cash on Hand", manualCode: "1111", status: "Active" },
+  { id: "sub-2", groupId: "grp-2", title: "Bank Accounts", manualCode: "1112", status: "Active" },
+  { id: "sub-3", groupId: "grp-3", title: "Trade Creditors", manualCode: "2111", status: "Active" },
+  { id: "sub-4", groupId: "grp-1", title: "Trade Debtors", manualCode: "1610", status: "Active" },
+  { id: "sub-5", groupId: "grp-4", title: "Loans Payable", manualCode: "2310", status: "Active" },
+  { id: "sub-6", groupId: "grp-5", title: "Common Stock", manualCode: "3110", status: "Active" },
+  { id: "sub-7", groupId: "grp-6", title: "Local Sales", manualCode: "4210", status: "Active" },
+  { id: "sub-8", groupId: "grp-7", title: "Consulting", manualCode: "4310", status: "Active" },
+  { id: "sub-9", groupId: "grp-8", title: "Rent Expense", manualCode: "5310", status: "Active" },
+  { id: "sub-10", groupId: "grp-9", title: "Raw Materials", manualCode: "1511", status: "Active" },
 ]
 
 const initialControls: ControlItem[] = [
-  { id: "ctl-1", subGroupId: "sub-1", title: "Cash on Hand", manualCode: "11110", status: "Active" },
-  { id: "ctl-2", subGroupId: "sub-1", title: "Main Bank Account", manualCode: "11120", status: "Active" },
-  { id: "ctl-3", subGroupId: "sub-2", title: "Petty Cash Drawer", manualCode: "11121", status: "Active" },
-  { id: "ctl-4", subGroupId: "sub-3", title: "Office Building", manualCode: "12110", status: "Active" },
-  { id: "ctl-5", subGroupId: "sub-4", title: "Computer Equipment", manualCode: "12120", status: "Active" },
-  { id: "ctl-6", subGroupId: "sub-5", title: "Finished Goods - Shoes", manualCode: "15111", status: "Active" },
-  { id: "ctl-7", subGroupId: "sub-6", title: "Raw Materials - Leather", manualCode: "15121", status: "Active" },
-  { id: "ctl-8", subGroupId: "sub-7", title: "Receivable - Retail", manualCode: "16111", status: "Active" },
-  { id: "ctl-9", subGroupId: "sub-8", title: "Payable - Vendors", manualCode: "21111", status: "Active" },
-  { id: "ctl-10", subGroupId: "sub-9", title: "Accrued Utilities", manualCode: "21121", status: "Active" },
-  { id: "ctl-11", subGroupId: "sub-10", title: "Bank Loan A", manualCode: "23111", status: "Active" },
-  { id: "ctl-12", subGroupId: "sub-11", title: "Common Stock A", manualCode: "31111", status: "Active" },
-  { id: "ctl-13", subGroupId: "sub-12", title: "Retained Earnings Prior", manualCode: "32111", status: "Active" },
-  { id: "ctl-14", subGroupId: "sub-13", title: "Sales - Online", manualCode: "42111", status: "Active" },
-  { id: "ctl-15", subGroupId: "sub-14", title: "Consulting Fees", manualCode: "43111", status: "Active" },
-  { id: "ctl-16", subGroupId: "sub-15", title: "COGS - Direct Materials", manualCode: "52111", status: "Active" },
-  { id: "ctl-17", subGroupId: "sub-16", title: "Rent - HQ", manualCode: "53111", status: "Active" },
-  { id: "ctl-18", subGroupId: "sub-17", title: "Digital Ads", manualCode: "54111", status: "Active" },
-  { id: "ctl-19", subGroupId: "sub-18", title: "Salary - Operations", manualCode: "55111", status: "Active" },
-  { id: "ctl-20", subGroupId: "sub-19", title: "Income Tax Payable", manualCode: "56111", status: "Active" },
-  { id: "ctl-21", subGroupId: "sub-20", title: "Accruals - Bonuses", manualCode: "57111", status: "Active" },
-  { id: "ctl-22", subGroupId: "sub-21", title: "Prepaid Insurance", manualCode: "58111", status: "Active" },
-  { id: "ctl-23", subGroupId: "sub-22", title: "Short Term Loan A", manualCode: "59111", status: "Active" },
-  { id: "ctl-24", subGroupId: "sub-23", title: "Bond Investment", manualCode: "13111", status: "Active" },
-  { id: "ctl-25", subGroupId: "sub-24", title: "Deferred Charges - Software", manualCode: "14111", status: "Active" },
-  { id: "ctl-26", subGroupId: "sub-25", title: "Deferred Tax", manualCode: "24111", status: "Active" },
-  { id: "ctl-27", subGroupId: "sub-26", title: "Accrued Rent", manualCode: "21211", status: "Active" },
-  { id: "ctl-28", subGroupId: "sub-27", title: "Misc Income - Other", manualCode: "41111", status: "Active" },
-  { id: "ctl-29", subGroupId: "sub-28", title: "Misc Expenses - Other", manualCode: "51111", status: "Active" },
-  { id: "ctl-30", subGroupId: "sub-29", title: "Trade Payable - Local", manualCode: "26111", status: "Active" },
-  { id: "ctl-31", subGroupId: "sub-30", title: "Deferred Revenue - Annual", manualCode: "18111", status: "Active" },
-  { id: "ctl-32", subGroupId: "sub-31", title: "Deferred Expense - Annual", manualCode: "28111", status: "Active" },
-  { id: "ctl-33", subGroupId: "sub-32", title: "Member Equity A", manualCode: "30111", status: "Active" },
-  { id: "ctl-34", subGroupId: "sub-33", title: "Online Sales - EU", manualCode: "40111", status: "Active" },
-  { id: "ctl-35", subGroupId: "sub-34", title: "General Opex - Office", manualCode: "50111", status: "Active" },
-  { id: "ctl-36", subGroupId: "sub-35", title: "Accrued Expenses Current", manualCode: "27111", status: "Active" },
+  { id: "ctl-1", subGroupId: "sub-1", title: "Main Cash", manualCode: "11111", status: "Active" },
+  { id: "ctl-2", subGroupId: "sub-2", title: "Operating Bank", manualCode: "11121", status: "Active" },
+  { id: "ctl-3", subGroupId: "sub-3", title: "Vendor Payables", manualCode: "21111", status: "Active" },
+  { id: "ctl-4", subGroupId: "sub-4", title: "Customer Receivables", manualCode: "16111", status: "Active" },
+  { id: "ctl-5", subGroupId: "sub-5", title: "Loan A", manualCode: "23111", status: "Active" },
+  { id: "ctl-6", subGroupId: "sub-6", title: "Equity Capital", manualCode: "31111", status: "Active" },
+  { id: "ctl-7", subGroupId: "sub-7", title: "Sales NA", manualCode: "42111", status: "Active" },
+  { id: "ctl-8", subGroupId: "sub-8", title: "Consulting Fees", manualCode: "43111", status: "Active" },
+  { id: "ctl-9", subGroupId: "sub-9", title: "Office Rent", manualCode: "53111", status: "Active" },
+  { id: "ctl-10", subGroupId: "sub-10", title: "Raw Materials Store", manualCode: "15111", status: "Active" },
 ]
 
 const initialGlAccounts: GlAccount[] = [
-  { id: "gl-1", controlId: "ctl-1", title: "Cash Drawer A", manualCode: "1111001", status: "Active" },
-  { id: "gl-2", controlId: "ctl-2", title: "Bank Account Main", manualCode: "1112001", status: "Active" },
-  { id: "gl-3", controlId: "ctl-3", title: "Petty Cash Office", manualCode: "1112101", status: "Active" },
-  { id: "gl-4", controlId: "ctl-4", title: "Office Building 1", manualCode: "1211001", status: "Active" },
-  { id: "gl-5", controlId: "ctl-5", title: "Servers & Hardware", manualCode: "1212001", status: "Active" },
-  { id: "gl-6", controlId: "ctl-6", title: "Finished Goods Warehouse A", manualCode: "1511101", status: "Active" },
-  { id: "gl-7", controlId: "ctl-7", title: "Leather Inventory Rack 1", manualCode: "1512101", status: "Active" },
-  { id: "gl-8", controlId: "ctl-8", title: "Receivable Retail A", manualCode: "1611101", status: "Active" },
-  { id: "gl-9", controlId: "ctl-9", title: "Payable Vendor A", manualCode: "2111101", status: "Active" },
-  { id: "gl-10", controlId: "ctl-10", title: "Accrued Utilities Oct", manualCode: "2112101", status: "Active" },
-  { id: "gl-11", controlId: "ctl-11", title: "Bank Loan A Current Portion", manualCode: "2311101", status: "Active" },
-  { id: "gl-12", controlId: "ctl-12", title: "Common Stock Issue 1", manualCode: "3111101", status: "Active" },
-  { id: "gl-13", controlId: "ctl-13", title: "Retained Earnings Opening", manualCode: "3211101", status: "Active" },
-  { id: "gl-14", controlId: "ctl-14", title: "Online Sales NA", manualCode: "4211101", status: "Active" },
-  { id: "gl-15", controlId: "ctl-15", title: "Consulting Fees APAC", manualCode: "4311101", status: "Active" },
-  { id: "gl-16", controlId: "ctl-16", title: "COGS Materials Batch 1", manualCode: "5211101", status: "Active" },
-  { id: "gl-17", controlId: "ctl-17", title: "Rent HQ Floor 1", manualCode: "5311101", status: "Active" },
-  { id: "gl-18", controlId: "ctl-18", title: "Digital Ads Q1", manualCode: "5411101", status: "Active" },
-  { id: "gl-19", controlId: "ctl-19", title: "Salary Ops - Team A", manualCode: "5511101", status: "Active" },
-  { id: "gl-20", controlId: "ctl-20", title: "Income Tax 2025", manualCode: "5611101", status: "Active" },
-  { id: "gl-21", controlId: "ctl-21", title: "Accrued Bonus 2025", manualCode: "5711101", status: "Active" },
-  { id: "gl-22", controlId: "ctl-22", title: "Prepaid Insurance Q2", manualCode: "5811101", status: "Active" },
-  { id: "gl-23", controlId: "ctl-23", title: "Short Term Loan Facility", manualCode: "5911101", status: "Active" },
-  { id: "gl-24", controlId: "ctl-24", title: "Bond Investment Series A", manualCode: "1311101", status: "Active" },
-  { id: "gl-25", controlId: "ctl-25", title: "Deferred Charges SaaS", manualCode: "1411101", status: "Active" },
-  { id: "gl-26", controlId: "ctl-26", title: "Deferred Tax Liability 2025", manualCode: "2411101", status: "Active" },
-  { id: "gl-27", controlId: "ctl-27", title: "Accrued Rent Dec", manualCode: "2121101", status: "Active" },
-  { id: "gl-28", controlId: "ctl-28", title: "Misc Income Refunds", manualCode: "4111101", status: "Active" },
-  { id: "gl-29", controlId: "ctl-29", title: "Misc Expenses Fees", manualCode: "5111101", status: "Active" },
-  { id: "gl-30", controlId: "ctl-30", title: "Trade Payable Local Vendor", manualCode: "2611101", status: "Active" },
-  { id: "gl-31", controlId: "ctl-31", title: "Deferred Revenue Annual Plan", manualCode: "1811101", status: "Active" },
-  { id: "gl-32", controlId: "ctl-32", title: "Deferred Expense Annual Plan", manualCode: "2811101", status: "Active" },
-  { id: "gl-33", controlId: "ctl-33", title: "Member Equity Contribution", manualCode: "3011101", status: "Active" },
-  { id: "gl-34", controlId: "ctl-34", title: "Online Sales EU Q1", manualCode: "4011101", status: "Active" },
-  { id: "gl-35", controlId: "ctl-35", title: "General Opex - Office Supplies", manualCode: "5011101", status: "Active" },
-  { id: "gl-36", controlId: "ctl-36", title: "Accrued Expenses Current Month", manualCode: "2711101", status: "Active" },
+  { id: "gl-1", controlId: "ctl-1", title: "Petty Cash Drawer", manualCode: "1111101", status: "Active" },
+  { id: "gl-2", controlId: "ctl-2", title: "Checking Account", manualCode: "1112101", status: "Active" },
+  { id: "gl-3", controlId: "ctl-3", title: "Payable Vendor A", manualCode: "2111101", status: "Active" },
+  { id: "gl-4", controlId: "ctl-4", title: "Receivable Client A", manualCode: "1611101", status: "Active" },
+  { id: "gl-5", controlId: "ctl-5", title: "Loan Principal A", manualCode: "2311101", status: "Active" },
+  { id: "gl-6", controlId: "ctl-6", title: "Equity Issue 1", manualCode: "3111101", status: "Active" },
+  { id: "gl-7", controlId: "ctl-7", title: "Sales Invoice 1001", manualCode: "4211101", status: "Active" },
+  { id: "gl-8", controlId: "ctl-8", title: "Consulting Invoice 2001", manualCode: "4311101", status: "Active" },
+  { id: "gl-9", controlId: "ctl-9", title: "Rent January", manualCode: "5311101", status: "Active" },
+  { id: "gl-10", controlId: "ctl-10", title: "Raw Materials Batch 1", manualCode: "1511101", status: "Active" },
+  { id: "gl-11", controlId: "ctl-1", title: "Cash Vault Reserve", manualCode: "1111102", status: "Active" },
+  { id: "gl-12", controlId: "ctl-1", title: "Cash Change Fund", manualCode: "1111103", status: "Active" },
+  { id: "gl-13", controlId: "ctl-2", title: "Bank Sweep Account", manualCode: "1112102", status: "Active" },
+  { id: "gl-14", controlId: "ctl-2", title: "Bank Savings Account", manualCode: "1112103", status: "Active" },
+  { id: "gl-15", controlId: "ctl-4", title: "Receivable Client B", manualCode: "1611102", status: "Active" },
+  { id: "gl-16", controlId: "ctl-4", title: "Receivable Client C", manualCode: "1611103", status: "Active" },
+  { id: "gl-17", controlId: "ctl-4", title: "Receivable Client D", manualCode: "1611104", status: "Active" },
 ]
 
 function uid(prefix: string) {
@@ -295,26 +194,10 @@ export default function ChartOfAccountsPage() {
   const [subGroupDialogOpen, setSubGroupDialogOpen] = useState(false)
   const [controlDialogOpen, setControlDialogOpen] = useState(false)
   const [glDialogOpen, setGlDialogOpen] = useState(false)
-  const [searchClass, setSearchClass] = useState("")
-  const [searchGroup, setSearchGroup] = useState("")
-  const [searchSubGroup, setSearchSubGroup] = useState("")
-  const [searchControl, setSearchControl] = useState("")
-  const [searchGl, setSearchGl] = useState("")
-  const [openClass, setOpenClass] = useState(false)
-  const [openGroup, setOpenGroup] = useState(false)
-  const [openSubGroup, setOpenSubGroup] = useState(false)
-  const [openControl, setOpenControl] = useState(false)
-  const [openGl, setOpenGl] = useState(false)
-  const [filterGroupClass, setFilterGroupClass] = useState("")
-  const [filterSubClass, setFilterSubClass] = useState("")
-  const [filterSubGroupGroup, setFilterSubGroupGroup] = useState("")
-  const [filterControlClass, setFilterControlClass] = useState("")
-  const [filterControlGroup, setFilterControlGroup] = useState("")
-  const [filterControlSubGroup, setFilterControlSubGroup] = useState("")
-  const [glFilterClass, setGlFilterClass] = useState("")
-  const [glFilterGroup, setGlFilterGroup] = useState("")
-  const [glFilterSubGroup, setGlFilterSubGroup] = useState("")
-  const [glFilterControl, setGlFilterControl] = useState("")
+  const [treeSearch, setTreeSearch] = useState("")
+  const [expandedNodes, setExpandedNodes] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(initialClasses.map((cls) => [cls.id, true])) as Record<string, boolean>,
+  )
 
   const classOptions = classes
   const resetForms = () => {
@@ -398,67 +281,8 @@ export default function ChartOfAccountsPage() {
     setGlForm({ controlId: controls[0]?.id ?? "", title: "", manualCode: "", status: "Active", editing: "" })
   }
 
-  const toggleStatus = (id: string, list: "class" | "group" | "sub" | "control" | "gl") => {
-    const flip = (s: Status) => (s === "Active" ? "Inactive" : "Active")
-    if (list === "class") setClasses((prev) => prev.map((c) => (c.id === id ? { ...c, status: flip(c.status) } : c)))
-    if (list === "group") setGroups((prev) => prev.map((g) => (g.id === id ? { ...g, status: flip(g.status) } : g)))
-    if (list === "sub") setSubGroups((prev) => prev.map((sg) => (sg.id === id ? { ...sg, status: flip(sg.status) } : sg)))
-    if (list === "control") setControls((prev) => prev.map((c) => (c.id === id ? { ...c, status: flip(c.status) } : c)))
-    if (list === "gl") setGlAccounts((prev) => prev.map((g) => (g.id === id ? { ...g, status: flip(g.status) } : g)))
-  }
-
-  const classList = classes.filter((c) => `${c.title} ${c.manualCode}`.toLowerCase().includes(searchClass.toLowerCase()))
-  const groupList = groups.filter((g) => {
-    const parent = classes.find((c) => c.id === g.classId)?.title ?? ""
-    const cls = classes.find((c) => c.id === g.classId)
-    const code = composeCode(cls, g)
-    const matchesClassFilter = !filterGroupClass || g.classId === filterGroupClass
-    return `${g.title} ${g.manualCode} ${parent} ${code}`.toLowerCase().includes(searchGroup.toLowerCase()) && matchesClassFilter
-  })
-  const subGroupList = subGroups.filter((sg) => {
-    const parent = groups.find((g) => g.id === sg.groupId)?.title ?? ""
-    const grp = groups.find((g) => g.id === sg.groupId)
-    const cls = grp ? classes.find((c) => c.id === grp.classId) : undefined
-    const code = composeCode(cls, grp, sg)
-    const matchesClassFilter = !filterSubClass || cls?.id === filterSubClass
-    const matchesGroupFilter = !filterSubGroupGroup || grp?.id === filterSubGroupGroup
-    return `${sg.title} ${sg.manualCode} ${parent} ${code}`.toLowerCase().includes(searchSubGroup.toLowerCase()) && matchesClassFilter && matchesGroupFilter
-  })
-  const controlList = controls.filter((c) => {
-    const sub = subGroups.find((sg) => sg.id === c.subGroupId)
-    const grp = sub ? groups.find((g) => g.id === sub.groupId) : undefined
-    const cls = grp ? classes.find((cl) => cl.id === grp.classId) : undefined
-    const code = composeCode(cls, grp, sub, c)
-    const parent = sub?.title ?? ""
-    const matchesClassFilter = !filterControlClass || cls?.id === filterControlClass
-    const matchesGroupFilter = !filterControlGroup || grp?.id === filterControlGroup
-    const matchesSubFilter = !filterControlSubGroup || sub?.id === filterControlSubGroup
-    return (
-      `${c.title} ${c.manualCode} ${parent} ${code}`.toLowerCase().includes(searchControl.toLowerCase()) &&
-      matchesClassFilter &&
-      matchesGroupFilter &&
-      matchesSubFilter
-    )
-  })
-  const glList = glAccounts.filter((g) => {
-    const parent = controls.find((c) => c.id === g.controlId)?.title ?? ""
-    const control = controls.find((c) => c.id === g.controlId)
-    const sub = control ? subGroups.find((sg) => sg.id === control.subGroupId) : undefined
-    const group = sub ? groups.find((gr) => gr.id === sub.groupId) : undefined
-    const cls = group ? classes.find((cl) => cl.id === group.classId) : undefined
-    const code = composeCode(cls, group, sub, control, g)
-    const matchesSearch = `${g.title} ${g.manualCode} ${parent} ${code}`.toLowerCase().includes(searchGl.toLowerCase())
-    const matchesClass = !glFilterClass || cls?.id === glFilterClass
-    const matchesGroup = !glFilterGroup || group?.id === glFilterGroup
-    const matchesSub = !glFilterSubGroup || sub?.id === glFilterSubGroup
-    const matchesControl = !glFilterControl || control?.id === glFilterControl
-    return matchesSearch && matchesClass && matchesGroup && matchesSub && matchesControl
-  })
-
-  const filteredGlClasses = classes
-  const filteredGlGroups = groups.filter((g) => !glFilterClass || g.classId === glFilterClass)
-  const filteredGlSubGroups = subGroups.filter((sg) => !glFilterGroup || sg.groupId === glFilterGroup)
-  const filteredGlControls = controls.filter((c) => !glFilterSubGroup || c.subGroupId === glFilterSubGroup)
+  const groupList = groups
+  const subGroupList = subGroups
 
   const renderStatus = (status: Status) => (
     <span
@@ -471,61 +295,329 @@ export default function ChartOfAccountsPage() {
     </span>
   )
 
-  const FilterSelect = ({
-    label,
-    placeholder,
-    options,
-    value,
-    onChange,
-    disabled,
-  }: {
-    label: string
-    placeholder: string
-    options: { id: string; label: string }[]
-    value: string
-    onChange: (v: string) => void
-    disabled?: boolean
-  }) => (
-    <Popover>
-      <PopoverTrigger asChild>
+  const sortByManualCode = (a: { manualCode: string; title: string }, b: { manualCode: string; title: string }) =>
+    (a.manualCode || "").localeCompare(b.manualCode || "", undefined, { numeric: true }) || a.title.localeCompare(b.title)
+
+  const sortedClasses = [...classes].sort(sortByManualCode)
+  const sortedGroups = [...groups].sort(sortByManualCode)
+  const sortedSubGroups = [...subGroups].sort(sortByManualCode)
+  const sortedControls = [...controls].sort(sortByManualCode)
+  const sortedGlAccounts = [...glAccounts].sort(sortByManualCode)
+  const totals = {
+    classes: classes.length,
+    groups: groups.length,
+    subGroups: subGroups.length,
+    controls: controls.length,
+    gls: glAccounts.length,
+  }
+
+  const treeData: TreeNodeItem[] = sortedClasses.map((cls) => ({
+    id: cls.id,
+    title: cls.title,
+    manualCode: cls.manualCode,
+    status: cls.status,
+    code: composeCode(cls),
+    type: "class",
+    classId: cls.id,
+    children: sortedGroups
+      .filter((g) => g.classId === cls.id)
+      .map((group) => ({
+        id: group.id,
+        title: group.title,
+        manualCode: group.manualCode,
+        status: group.status,
+        code: composeCode(cls, group),
+        type: "group",
+        classId: cls.id,
+        groupId: group.id,
+        children: sortedSubGroups
+          .filter((sg) => sg.groupId === group.id)
+          .map((sub) => ({
+            id: sub.id,
+            title: sub.title,
+            manualCode: sub.manualCode,
+            status: sub.status,
+            code: composeCode(cls, group, sub),
+            type: "subGroup",
+            classId: cls.id,
+            groupId: group.id,
+            subGroupId: sub.id,
+            children: sortedControls
+              .filter((ctl) => ctl.subGroupId === sub.id)
+              .map((ctl) => ({
+                id: ctl.id,
+                title: ctl.title,
+                manualCode: ctl.manualCode,
+                status: ctl.status,
+                code: composeCode(cls, group, sub, ctl),
+                type: "control",
+                classId: cls.id,
+                groupId: group.id,
+                subGroupId: sub.id,
+                controlId: ctl.id,
+                children: sortedGlAccounts
+                  .filter((gl) => gl.controlId === ctl.id)
+                  .map((gl) => ({
+                    id: gl.id,
+                    title: gl.title,
+                    manualCode: gl.manualCode,
+                    status: gl.status,
+                    code: composeCode(cls, group, sub, ctl, gl),
+                    type: "gl",
+                    classId: cls.id,
+                    groupId: group.id,
+                    subGroupId: sub.id,
+                    controlId: ctl.id,
+                  })),
+              })),
+          })),
+      })),
+  }))
+
+  const filteredTree: TreeNodeItem[] = treeSearch.trim()
+    ? (() => {
+        const query = treeSearch.toLowerCase()
+        const walk = (node: TreeNodeItem): TreeNodeItem | null => {
+          const childMatches = node.children?.map(walk).filter(Boolean) as TreeNodeItem[] | undefined
+          const matchesSelf = `${node.title} ${node.code} ${node.manualCode}`.toLowerCase().includes(query)
+          if (matchesSelf || (childMatches && childMatches.length > 0)) {
+            return { ...node, children: childMatches }
+          }
+          return null
+        }
+        return treeData.map(walk).filter(Boolean) as TreeNodeItem[]
+      })()
+    : treeData
+
+  const hasTreeSearch = treeSearch.trim().length > 0
+
+  const toggleNode = (id: string) => setExpandedNodes((prev) => ({ ...prev, [id]: !prev[id] }))
+  const expandAllNodes = () => {
+    const map: Record<string, boolean> = {}
+    const visit = (node: TreeNodeItem) => {
+      if (node.children?.length) {
+        map[node.id] = true
+        node.children.forEach(visit)
+      }
+    }
+    treeData.forEach(visit)
+    setExpandedNodes(map)
+  }
+  const collapseAllNodes = () => setExpandedNodes({})
+
+  const typeLabels: Record<TreeNodeItem["type"], string> = {
+    class: "Class",
+    group: "Group",
+    subGroup: "Sub Group",
+    control: "Control",
+    gl: "GL",
+  }
+
+  const typeTone: Record<TreeNodeItem["type"], string> = {
+    class: "bg-indigo-50 text-indigo-700",
+    group: "bg-sky-50 text-sky-700",
+    subGroup: "bg-blue-50 text-blue-700",
+    control: "bg-amber-50 text-amber-800",
+    gl: "bg-emerald-50 text-emerald-700",
+  }
+
+  const typeAccent: Record<TreeNodeItem["type"], string> = {
+    class: "#4F46E5",
+    group: "#0EA5E9",
+    subGroup: "#2563EB",
+    control: "#F59E0B",
+    gl: "#10B981",
+  }
+
+  const openNewClass = () => {
+    setClassForm({ title: "", manualCode: "", status: "Active", editing: "" })
+    setClassDialogOpen(true)
+  }
+
+  const openNewGroup = (classId?: string) => {
+    setGroupForm({ classId: classId ?? classes[0]?.id ?? "", title: "", manualCode: "", status: "Active", editing: "" })
+    setGroupDialogOpen(true)
+  }
+
+  const openNewSubGroup = (groupId?: string) => {
+    setSubGroupForm({ groupId: groupId ?? groups[0]?.id ?? "", title: "", manualCode: "", status: "Active", editing: "" })
+    setSubGroupDialogOpen(true)
+  }
+
+  const openNewControl = (subGroupId?: string) => {
+    setControlForm({ subGroupId: subGroupId ?? subGroups[0]?.id ?? "", title: "", manualCode: "", status: "Active", editing: "" })
+    setControlDialogOpen(true)
+  }
+
+  const openNewGl = (controlId?: string) => {
+    setGlForm({ controlId: controlId ?? controls[0]?.id ?? "", title: "", manualCode: "", status: "Active", editing: "" })
+    setGlDialogOpen(true)
+  }
+
+  const handleEditNode = (node: TreeNodeItem) => {
+    if (node.type === "class") {
+      const cls = classes.find((c) => c.id === node.id)
+      if (cls) {
+        setClassForm({ ...cls, editing: cls.id })
+        setClassDialogOpen(true)
+      }
+      return
+    }
+    if (node.type === "group") {
+      const group = groups.find((g) => g.id === node.id)
+      if (group) {
+        setGroupForm({ ...group, editing: group.id })
+        setGroupDialogOpen(true)
+      }
+      return
+    }
+    if (node.type === "subGroup") {
+      const sub = subGroups.find((sg) => sg.id === node.id)
+      if (sub) {
+        setSubGroupForm({ ...sub, editing: sub.id })
+        setSubGroupDialogOpen(true)
+      }
+      return
+    }
+    if (node.type === "control") {
+      const ctl = controls.find((c) => c.id === node.id)
+      if (ctl) {
+        setControlForm({ ...ctl, editing: ctl.id })
+        setControlDialogOpen(true)
+      }
+      return
+    }
+    if (node.type === "gl") {
+      const gl = glAccounts.find((g) => g.id === node.id)
+      if (gl) {
+        setGlForm({ ...gl, editing: gl.id })
+        setGlDialogOpen(true)
+      }
+    }
+  }
+
+  const AddAction = ({ node }: { node: TreeNodeItem }) => {
+    if (node.type === "class") {
+      return (
+        <Button variant="outline" size="sm" className="h-8 px-2 text-[11px] border-slate-200 hover:border-slate-300" onClick={() => openNewClass()}>
+          <Plus className="mr-1 h-3.5 w-3.5" />
+          Add Class
+        </Button>
+      )
+    }
+    if (node.type === "group") {
+      return (
         <Button
           variant="outline"
-          className="h-9 min-w-[140px] justify-between rounded-md border border-slate-300 bg-white px-3 text-[11px] text-slate-700 shadow-sm hover:bg-slate-50"
-          disabled={disabled}
+          size="sm"
+          className="h-8 px-2 text-[11px] border-slate-200 hover:border-slate-300"
+          onClick={() => openNewGroup(node.classId)}
         >
-          <span className="truncate">{value ? options.find((o) => o.id === value)?.label ?? placeholder : placeholder}</span>
-          <ChevronsUpDown className="h-3.5 w-3.5 opacity-60" />
+          <Plus className="mr-1 h-3.5 w-3.5" />
+          Add Group
         </Button>
-      </PopoverTrigger>
-      <PopoverContent className="p-0 w-64">
-        <Command>
-          <CommandInput placeholder={`Search ${label.toLowerCase()}...`} className="h-9 text-[11px]" />
-          <CommandList className="max-h-64">
-            <CommandEmpty className="text-xs text-slate-500">No results</CommandEmpty>
-            <CommandGroup>
-              <CommandItem
-                onSelect={() => onChange("")}
-                className="cursor-pointer text-[11px]"
-              >
-                <Check className={`mr-2 h-3 w-3 ${value === "" ? "opacity-100" : "opacity-0"}`} />
-                All {label}
-              </CommandItem>
-              {options.map((opt) => (
-                <CommandItem
-                  key={opt.id}
-                  onSelect={() => onChange(opt.id)}
-                  className="cursor-pointer text-[11px]"
-                >
-                  <Check className={`mr-2 h-3 w-3 ${value === opt.id ? "opacity-100" : "opacity-0"}`} />
-                  {opt.label}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
-  )
+      )
+    }
+    if (node.type === "subGroup") {
+      return (
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 px-2 text-[11px] border-slate-200 hover:border-slate-300"
+          onClick={() => openNewSubGroup(node.groupId ?? node.id)}
+        >
+          <Plus className="mr-1 h-3.5 w-3.5" />
+          Add Sub Group
+        </Button>
+      )
+    }
+    if (node.type === "control") {
+      return (
+        <div className="flex gap-1">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 px-2 text-[11px] border-slate-200 hover:border-slate-300"
+            onClick={() => openNewControl(node.subGroupId ?? node.id)}
+          >
+            <Plus className="mr-1 h-3.5 w-3.5" />
+            Add Control
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 px-2 text-[11px] border-slate-200 hover:border-slate-300"
+            onClick={() => openNewGl(node.controlId ?? node.id)}
+          >
+            <Plus className="mr-1 h-3.5 w-3.5" />
+            Add GL
+          </Button>
+        </div>
+      )
+    }
+    if (node.type === "gl") {
+      return null
+    }
+    return null
+  }
+
+  const TreeRow = ({ node, depth }: { node: TreeNodeItem; depth: number }) => {
+    const hasChildren = Boolean(node.children?.length)
+    const isExpanded = hasTreeSearch ? true : expandedNodes[node.id] ?? false
+
+    return (
+            <div className="space-y-2" style={{ marginLeft: depth ? depth * 12 : 0 }}>
+        <div className="flex items-center gap-3 rounded-xl border border-slate-200/80 bg-gradient-to-r from-white via-slate-50 to-white px-3.5 py-2.5 shadow-sm transition hover:-translate-y-[1px] hover:border-slate-300 hover:shadow-md">
+          {hasChildren ? (
+            <button
+              type="button"
+              onClick={() => toggleNode(node.id)}
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-100"
+              aria-label={`${isExpanded ? "Collapse" : "Expand"} ${node.title}`}
+            >
+              {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            </button>
+          ) : (
+            <span className="w-7" />
+          )}
+          <div className="flex min-w-0 items-center gap-2">
+            <span
+              className="h-2.5 w-2.5 shrink-0 rounded-full shadow-[0_0_0_3px_rgba(0,0,0,0.04)]"
+              style={{ backgroundColor: typeAccent[node.type] }}
+              aria-hidden
+            />
+            <span className="truncate text-[12px] font-semibold text-slate-900">{node.title}</span>
+            <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold shadow-sm ${typeTone[node.type]}`}>
+              {typeLabels[node.type]}
+            </span>
+          </div>
+          <div className="ml-auto flex items-center gap-2">
+            <span className="rounded-full bg-slate-100 px-2 py-0.5 font-mono text-[10px] text-slate-700 shadow-inner">
+              {node.code || "—"}
+            </span>
+            {renderStatus(node.status)}
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 px-2 text-[11px] border-slate-200 hover:border-slate-300"
+              onClick={() => handleEditNode(node)}
+            >
+              <Edit3 className="mr-1 h-3.5 w-3.5" />
+              Edit
+            </Button>
+            <AddAction node={node} />
+          </div>
+        </div>
+        {hasChildren && (isExpanded || hasTreeSearch) && (
+          <div className="space-y-2 border-l border-slate-200 pl-4">
+            {node.children!.map((child) => (
+              <TreeRow key={child.id} node={child} depth={depth + 1} />
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-screen bg-slate-50">
@@ -558,561 +650,92 @@ export default function ChartOfAccountsPage() {
           <Card className="border-slate-200 shadow-sm">
             <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="space-y-1">
-                <CardTitle className="text-sm text-slate-900">Class List</CardTitle>
-                <p className="text-xs text-slate-500">Manage class names and statuses.</p>
+                <CardTitle className="text-sm text-slate-900">Chart of Accounts Tree</CardTitle>
+                <p className="text-xs text-slate-500">Search, expand, and add accounts in context. Click Add at any level to create that exact type.</p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <Input
-                  placeholder="Search class..."
-                  value={searchClass}
-                  onChange={(e) => setSearchClass(e.target.value)}
-                  className="h-9 w-40"
+                  placeholder="Search title or manual code..."
+                  value={treeSearch}
+                  onChange={(e) => setTreeSearch(e.target.value)}
+                  className="h-9 w-56 text-[11px]"
                 />
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-9 w-10 rounded-md border border-slate-300 bg-white text-slate-700 shadow-sm hover:bg-slate-50 text-[11px]"
-                  onClick={() => setOpenClass((prev) => !prev)}
+                  className="h-9 px-3 text-[11px] border-slate-300"
+                  onClick={expandAllNodes}
                 >
-                  {openClass ? <Minimize size={16} /> : <Expand size={16} />}
+                  Expand all
                 </Button>
-                <Button
-                  style={{ backgroundColor: accent }}
-                  className="h-9 rounded-md px-4 text-white shadow-sm hover:brightness-110 text-[11px]"
-                  onClick={() => setClassDialogOpen(true)}
-                >
-                  Add
-                </Button>
-              </div>
-            </CardHeader>
-            {openClass && (
-              <CardContent className="overflow-x-auto">
-                <table className="min-w-full text-[11px]">
-                  <thead className="bg-slate-50 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-600">
-                    <tr>
-                      <th className="px-3 py-2 text-left">Class</th>
-                      <th className="px-3 py-2 text-left">Manual Code</th>
-                      <th className="px-3 py-2 text-left">Status</th>
-                      <th className="px-3 py-2 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {classList.map((item, idx) => (
-                      <tr key={item.id} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/80"}>
-                        <td className="px-3 py-2 text-slate-900">{item.title}</td>
-                        <td className="px-3 py-2 text-slate-700">{item.manualCode || "-"}</td>
-                        <td className="px-3 py-2">{renderStatus(item.status)}</td>
-                        <td className="px-3 py-2 text-right space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-8 border-slate-200 text-[11px]"
-                            onClick={() => {
-                              setClassForm({ ...item, editing: item.id })
-                              setClassDialogOpen(true)
-                            }}
-                          >
-                            <Edit3 size={14} className="mr-1" /> Edit
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 text-slate-600 text-[11px]"
-                            onClick={() => toggleStatus(item.id, "class")}
-                          >
-                            Toggle
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                    {classList.length === 0 && (
-                      <tr>
-                        <td colSpan={5} className="px-3 py-4 text-center text-slate-500">
-                          No class defined
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </CardContent>
-            )}
-          </Card>
-
-          <Card className="border-slate-200 shadow-sm">
-            <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="space-y-1">
-                <CardTitle className="text-sm text-slate-900">Group List</CardTitle>
-                <p className="text-xs text-slate-500">Groups under classes.</p>
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <Input
-                  placeholder="Search group..."
-                  value={searchGroup}
-                  onChange={(e) => setSearchGroup(e.target.value)}
-                  className="h-9 w-40 text-[11px]"
-                />
-                <FilterSelect
-                  label="Class"
-                  placeholder="All Class"
-                  options={classes.map((c) => ({ id: c.id, label: c.title }))}
-                  value={filterGroupClass}
-                  onChange={(v) => setFilterGroupClass(v)}
-                />
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-9 w-10 rounded-md border border-slate-300 bg-white text-slate-700 shadow-sm hover:bg-slate-50 text-[11px]"
-                  onClick={() => setOpenGroup((prev) => !prev)}
+                  className="h-9 px-3 text-[11px] border-slate-300"
+                  onClick={collapseAllNodes}
                 >
-                  {openGroup ? <Minimize size={16} /> : <Expand size={16} />}
+                  Collapse all
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 px-3 text-[11px] border-slate-300"
+                  onClick={() => openNewGl()}
+                >
+                  <Plus className="mr-1 h-3.5 w-3.5" />
+                  Add GL
                 </Button>
                 <Button
                   style={{ backgroundColor: accent }}
-                  className="h-9 rounded-md px-4 text-white shadow-sm hover:brightness-110 text-[11px]"
-                  onClick={() => setGroupDialogOpen(true)}
-                >
-                  Add
-                </Button>
-              </div>
-            </CardHeader>
-            {openGroup && (
-              <CardContent className="overflow-x-auto">
-                <table className="min-w-full text-[11px]">
-                  <thead className="bg-slate-50 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-600">
-                    <tr>
-                      <th className="px-3 py-2 text-left">Class</th>
-                      <th className="px-3 py-2 text-left">Group</th>
-                      <th className="px-3 py-2 text-left">Manual Code</th>
-                      <th className="px-3 py-2 text-left">Status</th>
-                      <th className="px-3 py-2 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {groupList.map((item, idx) => {
-                      const cls = classes.find((c) => c.id === item.classId)
-                      return (
-                        <tr key={item.id} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/80"}>
-                          <td className="px-3 py-2 text-slate-700">{cls?.title ?? "-"}</td>
-                          <td className="px-3 py-2 text-slate-900">{item.title}</td>
-                        <td className="px-3 py-2 text-slate-700">
-                          {composeCode(cls, item) || "-"}
-                        </td>
-                          <td className="px-3 py-2">{renderStatus(item.status)}</td>
-                          <td className="px-3 py-2 text-right space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                            className="h-8 border-slate-200 text-[11px]"
-                              onClick={() => {
-                                setGroupForm({ ...item, editing: item.id })
-                                setGroupDialogOpen(true)
-                              }}
-                            >
-                              <Edit3 size={14} className="mr-1" /> Edit
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                            className="h-8 text-slate-600 text-[11px]"
-                              onClick={() => toggleStatus(item.id, "group")}
-                            >
-                              Toggle
-                            </Button>
-                          </td>
-                        </tr>
-                      )
-                    })}
-                    {groupList.length === 0 && (
-                      <tr>
-                        <td colSpan={5} className="px-3 py-4 text-center text-slate-500">
-                          No group defined
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </CardContent>
-            )}
-          </Card>
-
-          <Card className="border-slate-200 shadow-sm">
-            <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="space-y-1">
-                <CardTitle className="text-sm text-slate-900">Sub Group List</CardTitle>
-                <p className="text-xs text-slate-500">Sub groups under groups.</p>
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <Input
-                  placeholder="Search sub group..."
-                  value={searchSubGroup}
-                  onChange={(e) => setSearchSubGroup(e.target.value)}
-                  className="h-9 w-40 text-[11px]"
-                />
-                <FilterSelect
-                  label="Class"
-                  placeholder="All Class"
-                  options={classes.map((c) => ({ id: c.id, label: c.title }))}
-                  value={filterSubClass}
-                  onChange={(v) => {
-                    setFilterSubClass(v)
-                    setFilterSubGroupGroup("")
+                  size="sm"
+                  className="h-9 px-4 text-white text-[11px]"
+                  onClick={() => {
+                    openNewClass()
                   }}
-                />
-                <FilterSelect
-                  label="Group"
-                  placeholder="All Group"
-                  options={groups.filter((g) => !filterSubClass || g.classId === filterSubClass).map((g) => ({ id: g.id, label: g.title }))}
-                  value={filterSubGroupGroup}
-                  onChange={(v) => setFilterSubGroupGroup(v)}
-                  disabled={!filterSubClass && groups.length === 0}
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-9 w-10 rounded-md border border-slate-300 bg-white text-slate-700 shadow-sm hover:bg-slate-50 text-[11px]"
-                  onClick={() => setOpenSubGroup((prev) => !prev)}
                 >
-                  {openSubGroup ? <Minimize size={16} /> : <Expand size={16} />}
-                </Button>
-                <Button
-                  style={{ backgroundColor: accent }}
-                  className="h-9 rounded-md px-4 text-white shadow-sm hover:brightness-110 text-[11px]"
-                  onClick={() => setSubGroupDialogOpen(true)}
-                >
-                  Add
+                  <Plus className="mr-1 h-3.5 w-3.5" />
+                  Add Class
                 </Button>
               </div>
             </CardHeader>
-            {openSubGroup && (
-              <CardContent className="overflow-x-auto">
-                <table className="min-w-full text-[11px]">
-                  <thead className="bg-slate-50 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-600">
-                    <tr>
-                      <th className="px-3 py-2 text-left">Class</th>
-                      <th className="px-3 py-2 text-left">Group</th>
-                      <th className="px-3 py-2 text-left">Sub Group</th>
-                      <th className="px-3 py-2 text-left">Manual Code</th>
-                      <th className="px-3 py-2 text-left">Status</th>
-                      <th className="px-3 py-2 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {subGroupList.map((item, idx) => {
-                      const grp = groups.find((g) => g.id === item.groupId)
-                      const cls = grp ? classes.find((c) => c.id === grp.classId) : undefined
-                      return (
-                        <tr key={item.id} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/80"}>
-                          <td className="px-3 py-2 text-slate-700">{cls?.title ?? "-"}</td>
-                          <td className="px-3 py-2 text-slate-700">{grp?.title ?? "-"}</td>
-                          <td className="px-3 py-2 text-slate-900">{item.title}</td>
-                        <td className="px-3 py-2 text-slate-700">
-                          {composeCode(cls, grp, item) || "-"}
-                        </td>
-                          <td className="px-3 py-2">{renderStatus(item.status)}</td>
-                          <td className="px-3 py-2 text-right space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                            className="h-8 border-slate-200 text-[11px]"
-                              onClick={() => {
-                                setSubGroupForm({ ...item, editing: item.id })
-                                setSubGroupDialogOpen(true)
-                              }}
-                            >
-                              <Edit3 size={14} className="mr-1" /> Edit
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                            className="h-8 text-slate-600 text-[11px]"
-                              onClick={() => toggleStatus(item.id, "sub")}
-                            >
-                              Toggle
-                            </Button>
-                          </td>
-                        </tr>
-                      )
-                    })}
-                    {subGroupList.length === 0 && (
-                      <tr>
-                        <td colSpan={6} className="px-3 py-4 text-center text-slate-500">
-                          No sub group defined
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </CardContent>
-            )}
-          </Card>
-
-          <Card className="border-slate-200 shadow-sm">
-            <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="space-y-1">
-                <CardTitle className="text-sm text-slate-900">Control List</CardTitle>
-                <p className="text-xs text-slate-500">Controls under sub groups.</p>
+            <CardContent className="space-y-3">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+                {[
+                  { label: "Classes", value: totals.classes },
+                  { label: "Groups", value: totals.groups },
+                  { label: "Sub Groups", value: totals.subGroups },
+                  { label: "Controls", value: totals.controls },
+                  { label: "GLs", value: totals.gls },
+                ].map((stat) => (
+                  <div
+                    key={stat.label}
+                    className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2 text-[11px] text-slate-700 shadow-sm"
+                  >
+                    <span className="font-medium">{stat.label}</span>
+                    <span className="rounded-full bg-slate-100 px-2 py-0.5 font-semibold text-slate-800 shadow-inner">{stat.value}</span>
+                  </div>
+                ))}
               </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <Input
-                  placeholder="Search control..."
-                  value={searchControl}
-                  onChange={(e) => setSearchControl(e.target.value)}
-                  className="h-9 w-40 text-[11px]"
-                />
-                <FilterSelect
-                  label="Class"
-                  placeholder="All Class"
-                  options={classes.map((c) => ({ id: c.id, label: c.title }))}
-                  value={filterControlClass}
-                  onChange={(v) => {
-                    setFilterControlClass(v)
-                    setFilterControlGroup("")
-                    setFilterControlSubGroup("")
-                  }}
-                />
-                <FilterSelect
-                  label="Group"
-                  placeholder="All Group"
-                  options={groups.filter((g) => !filterControlClass || g.classId === filterControlClass).map((g) => ({ id: g.id, label: g.title }))}
-                  value={filterControlGroup}
-                  onChange={(v) => {
-                    setFilterControlGroup(v)
-                    setFilterControlSubGroup("")
-                  }}
-                  disabled={!filterControlClass && groups.length === 0}
-                />
-                <FilterSelect
-                  label="Sub Group"
-                  placeholder="All Sub Group"
-                  options={subGroups.filter((sg) => !filterControlGroup || sg.groupId === filterControlGroup).map((sg) => ({ id: sg.id, label: sg.title }))}
-                  value={filterControlSubGroup}
-                  onChange={(v) => setFilterControlSubGroup(v)}
-                  disabled={!filterControlGroup && subGroups.length === 0}
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-9 w-10 rounded-md border border-slate-300 bg-white text-slate-700 shadow-sm hover:bg-slate-50 text-[11px]"
-                  onClick={() => setOpenControl((prev) => !prev)}
-                >
-                  {openControl ? <Minimize size={16} /> : <Expand size={16} />}
-                </Button>
-                <Button
-                  style={{ backgroundColor: accent }}
-                  className="h-9 rounded-md px-4 text-white shadow-sm hover:brightness-110 text-[11px]"
-                  onClick={() => setControlDialogOpen(true)}
-                >
-                  Add
-                </Button>
+              <div className="flex flex-wrap gap-2 rounded-lg border border-slate-200/80 bg-gradient-to-r from-slate-50 via-white to-slate-50 px-3 py-2 text-[11px] text-slate-600 shadow-sm">
+                <span className="font-semibold text-slate-700">Tips:</span>
+                <span>Use search to spotlight titles or manual codes.</span>
+                <span>Expand all to scan, then collapse to focus.</span>
+                <span>Add is scoped to the level you click (Class, Group, Sub Group, Control, GL).</span>
               </div>
-            </CardHeader>
-            {openControl && (
-              <CardContent className="overflow-x-auto">
-                <table className="min-w-full text-[11px]">
-                  <thead className="bg-slate-50 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-600">
-                    <tr>
-                      <th className="px-3 py-2 text-left">Class</th>
-                      <th className="px-3 py-2 text-left">Group</th>
-                      <th className="px-3 py-2 text-left">Sub Group</th>
-                      <th className="px-3 py-2 text-left">Control</th>
-                      <th className="px-3 py-2 text-left">Manual Code</th>
-                      <th className="px-3 py-2 text-left">Status</th>
-                      <th className="px-3 py-2 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {controlList.map((item, idx) => {
-                      const sub = subGroups.find((sg) => sg.id === item.subGroupId)
-                      const group = sub ? groups.find((g) => g.id === sub.groupId) : undefined
-                      const cls = group ? classes.find((c) => c.id === group.classId) : undefined
-                      return (
-                        <tr key={item.id} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/80"}>
-                          <td className="px-3 py-2 text-slate-700">{cls?.title ?? "-"}</td>
-                          <td className="px-3 py-2 text-slate-700">{group?.title ?? "-"}</td>
-                          <td className="px-3 py-2 text-slate-700">{sub?.title ?? "-"}</td>
-                          <td className="px-3 py-2 text-slate-900">{item.title}</td>
-                        <td className="px-3 py-2 text-slate-700">
-                          {composeCode(cls, group, sub, item) || "-"}
-                        </td>
-                          <td className="px-3 py-2">{renderStatus(item.status)}</td>
-                          <td className="px-3 py-2 text-right space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                            className="h-8 border-slate-200 text-[11px]"
-                              onClick={() => {
-                                setControlForm({ ...item, editing: item.id })
-                                setControlDialogOpen(true)
-                              }}
-                            >
-                              <Edit3 size={14} className="mr-1" /> Edit
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                            className="h-8 text-slate-600 text-[11px]"
-                              onClick={() => toggleStatus(item.id, "control")}
-                            >
-                              Toggle
-                            </Button>
-                          </td>
-                        </tr>
-                      )
-                    })}
-                    {controlList.length === 0 && (
-                      <tr>
-                        <td colSpan={7} className="px-3 py-4 text-center text-slate-500">
-                          No control defined
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </CardContent>
-            )}
-          </Card>
-
-          <Card className="border-slate-200 shadow-sm">
-              <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="space-y-1">
-                  <CardTitle className="text-sm text-slate-900">GL Account List</CardTitle>
-                  <p className="text-xs text-slate-500">GL accounts under control names.</p>
+              {filteredTree.length > 0 ? (
+                <div className="space-y-2">
+                  {filteredTree.map((node) => (
+                    <TreeRow key={node.id} node={node} depth={0} />
+                  ))}
                 </div>
-                <div className="flex w-full flex-wrap items-center gap-2 sm:flex-1 sm:justify-end">
-                  <Input
-                    placeholder="Search GL account..."
-                    value={searchGl}
-                    onChange={(e) => setSearchGl(e.target.value)}
-                    className="h-9 w-48 text-[11px]"
-                  />
-                  <FilterSelect
-                    label="Class"
-                    placeholder="All Class"
-                  options={filteredGlClasses.map((c) => ({ id: c.id, label: c.title }))}
-                  value={glFilterClass}
-                  onChange={(v) => {
-                    setGlFilterClass(v)
-                    setGlFilterGroup("")
-                    setGlFilterSubGroup("")
-                    setGlFilterControl("")
-                  }}
-                />
-                <FilterSelect
-                  label="Group"
-                  placeholder="All Group"
-                  options={filteredGlGroups.map((g) => ({ id: g.id, label: g.title }))}
-                  value={glFilterGroup}
-                  onChange={(v) => {
-                    setGlFilterGroup(v)
-                    setGlFilterSubGroup("")
-                    setGlFilterControl("")
-                  }}
-                  disabled={!glFilterClass && filteredGlGroups.length === 0}
-                />
-                <FilterSelect
-                  label="Sub Group"
-                  placeholder="All Sub Group"
-                  options={filteredGlSubGroups.map((sg) => ({ id: sg.id, label: sg.title }))}
-                  value={glFilterSubGroup}
-                  onChange={(v) => {
-                    setGlFilterSubGroup(v)
-                    setGlFilterControl("")
-                  }}
-                  disabled={!glFilterGroup && filteredGlSubGroups.length === 0}
-                />
-                <FilterSelect
-                  label="Control"
-                  placeholder="All Control"
-                    options={filteredGlControls.map((c) => ({ id: c.id, label: c.title }))}
-                    value={glFilterControl}
-                    onChange={(v) => setGlFilterControl(v)}
-                    disabled={!glFilterSubGroup && filteredGlControls.length === 0}
-                  />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-9 w-10 rounded-md border border-slate-300 bg-white text-slate-700 shadow-sm hover:bg-slate-50 text-[11px]"
-                  onClick={() => setOpenGl((prev) => !prev)}
-                >
-                  {openGl ? <Minimize size={16} /> : <Expand size={16} />}
-                </Button>
-                <Button
-                  style={{ backgroundColor: accent }}
-                  className="h-9 rounded-md px-4 text-white shadow-sm hover:brightness-110 text-[11px]"
-                  onClick={() => setGlDialogOpen(true)}
-                >
-                  Add
-                </Button>
-              </div>
-            </CardHeader>
-            {openGl && (
-              <CardContent className="overflow-x-auto">
-                <table className="min-w-full text-[11px]">
-                  <thead className="bg-slate-50 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-600">
-                    <tr>
-                      <th className="px-3 py-2 text-left">Class</th>
-                      <th className="px-3 py-2 text-left">Group</th>
-                      <th className="px-3 py-2 text-left">Sub Group</th>
-                      <th className="px-3 py-2 text-left">Control</th>
-                      <th className="px-3 py-2 text-left">GL Account</th>
-                      <th className="px-3 py-2 text-left">Manual Code</th>
-                      <th className="px-3 py-2 text-left">Status</th>
-                      <th className="px-3 py-2 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {glList.map((item, idx) => {
-                      const control = controls.find((c) => c.id === item.controlId)
-                      const sub = control ? subGroups.find((sg) => sg.id === control.subGroupId) : undefined
-                      const group = sub ? groups.find((g) => g.id === sub.groupId) : undefined
-                      const cls = group ? classes.find((c) => c.id === group.classId) : undefined
-                      return (
-                        <tr key={item.id} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/80"}>
-                          <td className="px-3 py-2 text-slate-700">{cls?.title ?? "-"}</td>
-                          <td className="px-3 py-2 text-slate-700">{group?.title ?? "-"}</td>
-                          <td className="px-3 py-2 text-slate-700">{sub?.title ?? "-"}</td>
-                          <td className="px-3 py-2 text-slate-700">{control?.title ?? "-"}</td>
-                          <td className="px-3 py-2 text-slate-900">{item.title}</td>
-                          <td className="px-3 py-2 text-slate-700">
-                            {composeCode(cls, group, sub, control, item) || "-"}
-                          </td>
-                          <td className="px-3 py-2">{renderStatus(item.status)}</td>
-                          <td className="px-3 py-2 text-right space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                            className="h-8 border-slate-200 text-[11px]"
-                              onClick={() => {
-                                setGlForm({ ...item, editing: item.id })
-                                setGlDialogOpen(true)
-                              }}
-                            >
-                              <Edit3 size={14} className="mr-1" /> Edit
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                            className="h-8 text-slate-600 text-[11px]"
-                              onClick={() => toggleStatus(item.id, "gl")}
-                            >
-                              Toggle
-                            </Button>
-                          </td>
-                        </tr>
-                      )
-                    })}
-                    {glList.length === 0 && (
-                      <tr>
-                        <td colSpan={8} className="px-3 py-4 text-center text-slate-500">
-                          No GL account defined
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </CardContent>
-            )}
+              ) : (
+                <div className="rounded-md border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-xs text-slate-500">
+                  No accounts match your search.
+                </div>
+              )}
+            </CardContent>
           </Card>
+
         </div>
 
         {/* Dialogs */}
