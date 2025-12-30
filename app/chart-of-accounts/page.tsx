@@ -91,6 +91,15 @@ const initialGroups: GroupItem[] = [
   { id: "grp-8", classId: "cls-1", title: "Long-term Investments", manualCode: "1170", status: "Active" },
   { id: "grp-9", classId: "cls-1", title: "Deferred Assets", manualCode: "1180", status: "Active" },
   { id: "grp-10", classId: "cls-1", title: "Other Assets", manualCode: "1190", status: "Active" },
+  { id: "grp-21", classId: "cls-2", title: "Current Liabilities", manualCode: "2100", status: "Active" },
+  { id: "grp-31", classId: "cls-3", title: "Shareholders' Equity", manualCode: "3100", status: "Active" },
+  { id: "grp-41", classId: "cls-4", title: "Sales Revenue", manualCode: "4100", status: "Active" },
+  { id: "grp-51", classId: "cls-5", title: "Operating Expenses", manualCode: "5100", status: "Active" },
+  { id: "grp-61", classId: "cls-6", title: "Other Income", manualCode: "4110", status: "Active" },
+  { id: "grp-71", classId: "cls-7", title: "Other Expenses", manualCode: "5200", status: "Active" },
+  { id: "grp-81", classId: "cls-8", title: "Inventory Holding", manualCode: "1510", status: "Active" },
+  { id: "grp-91", classId: "cls-9", title: "Property, Plant & Equipment", manualCode: "1210", status: "Active" },
+  { id: "grp-101", classId: "cls-10", title: "Payroll & Compensation", manualCode: "5510", status: "Active" },
 ]
 
 const initialSubGroups: SubGroupItem[] = [
@@ -104,6 +113,15 @@ const initialSubGroups: SubGroupItem[] = [
   { id: "sub-8", groupId: "grp-8", title: "Long-term Investments", manualCode: "1171", status: "Active" },
   { id: "sub-9", groupId: "grp-9", title: "Deferred Charges", manualCode: "1181", status: "Active" },
   { id: "sub-10", groupId: "grp-10", title: "Misc Assets", manualCode: "1191", status: "Active" },
+  { id: "sub-21", groupId: "grp-21", title: "Accounts Payable", manualCode: "2101", status: "Active" },
+  { id: "sub-31", groupId: "grp-31", title: "Ordinary Shares", manualCode: "3101", status: "Active" },
+  { id: "sub-41", groupId: "grp-41", title: "Product Sales", manualCode: "4101", status: "Active" },
+  { id: "sub-51", groupId: "grp-51", title: "Utilities", manualCode: "5101", status: "Active" },
+  { id: "sub-61", groupId: "grp-61", title: "Misc Income", manualCode: "4111", status: "Active" },
+  { id: "sub-71", groupId: "grp-71", title: "Other Outflows", manualCode: "5201", status: "Active" },
+  { id: "sub-81", groupId: "grp-81", title: "Raw Materials", manualCode: "1511", status: "Active" },
+  { id: "sub-91", groupId: "grp-91", title: "Machinery", manualCode: "1211", status: "Active" },
+  { id: "sub-101", groupId: "grp-101", title: "Monthly Payroll", manualCode: "5511", status: "Active" },
 ]
 
 const initialControls: ControlItem[] = [
@@ -117,6 +135,15 @@ const initialControls: ControlItem[] = [
   { id: "ctl-8", subGroupId: "sub-8", title: "Equity Investment", manualCode: "117101", status: "Active" },
   { id: "ctl-9", subGroupId: "sub-9", title: "Deferred Software Costs", manualCode: "118101", status: "Active" },
   { id: "ctl-10", subGroupId: "sub-10", title: "Other Asset Control", manualCode: "119101", status: "Active" },
+  { id: "ctl-21", subGroupId: "sub-21", title: "Vendor Payables", manualCode: "210101", status: "Active" },
+  { id: "ctl-31", subGroupId: "sub-31", title: "Paid-in Capital", manualCode: "310101", status: "Active" },
+  { id: "ctl-41", subGroupId: "sub-41", title: "Domestic Sales", manualCode: "410101", status: "Active" },
+  { id: "ctl-51", subGroupId: "sub-51", title: "Electricity Expense", manualCode: "510101", status: "Active" },
+  { id: "ctl-61", subGroupId: "sub-61", title: "Interest Income", manualCode: "411101", status: "Active" },
+  { id: "ctl-71", subGroupId: "sub-71", title: "Misc Expense", manualCode: "520101", status: "Active" },
+  { id: "ctl-81", subGroupId: "sub-81", title: "Warehouse Materials", manualCode: "151101", status: "Active" },
+  { id: "ctl-91", subGroupId: "sub-91", title: "Equipment Assets", manualCode: "121101", status: "Active" },
+  { id: "ctl-101", subGroupId: "sub-101", title: "Salary Expense", manualCode: "551101", status: "Active" },
 ]
 
 const initialGlAccounts: GlAccount[] = [
@@ -194,6 +221,51 @@ const initialGlAccounts: GlAccount[] = [
   { id: "gl-103", controlId: "ctl-10", title: "Misc Asset C", manualCode: "11910103", status: "Active" },
   { id: "gl-104", controlId: "ctl-10", title: "Misc Asset D", manualCode: "11910104", status: "Active" },
   { id: "gl-105", controlId: "ctl-10", title: "Misc Asset E", manualCode: "11910105", status: "Active" },
+
+  // Liabilities (ctl-21)
+  { id: "gl-201", controlId: "ctl-21", title: "Vendor Payable A", manualCode: "21010101", status: "Active" },
+  { id: "gl-202", controlId: "ctl-21", title: "Vendor Payable B", manualCode: "21010102", status: "Active" },
+  { id: "gl-203", controlId: "ctl-21", title: "Accrued Expenses", manualCode: "21010103", status: "Active" },
+
+  // Equity (ctl-31)
+  { id: "gl-301", controlId: "ctl-31", title: "Common Stock", manualCode: "31010101", status: "Active" },
+  { id: "gl-302", controlId: "ctl-31", title: "Share Premium", manualCode: "31010102", status: "Active" },
+  { id: "gl-303", controlId: "ctl-31", title: "Retained Earnings", manualCode: "31010103", status: "Active" },
+
+  // Revenue (ctl-41)
+  { id: "gl-401", controlId: "ctl-41", title: "Product Sales - East", manualCode: "41010101", status: "Active" },
+  { id: "gl-402", controlId: "ctl-41", title: "Product Sales - West", manualCode: "41010102", status: "Active" },
+  { id: "gl-403", controlId: "ctl-41", title: "Online Sales", manualCode: "41010103", status: "Active" },
+
+  // Expenses (ctl-51)
+  { id: "gl-501", controlId: "ctl-51", title: "Electricity HQ", manualCode: "51010101", status: "Active" },
+  { id: "gl-502", controlId: "ctl-51", title: "Electricity Warehouse", manualCode: "51010102", status: "Active" },
+  { id: "gl-503", controlId: "ctl-51", title: "Electricity Retail", manualCode: "51010103", status: "Active" },
+
+  // Other Income (ctl-61)
+  { id: "gl-601", controlId: "ctl-61", title: "Interest Income A", manualCode: "41110101", status: "Active" },
+  { id: "gl-602", controlId: "ctl-61", title: "Interest Income B", manualCode: "41110102", status: "Active" },
+  { id: "gl-603", controlId: "ctl-61", title: "Interest Income C", manualCode: "41110103", status: "Active" },
+
+  // Other Expense (ctl-71)
+  { id: "gl-701", controlId: "ctl-71", title: "Misc Expense A", manualCode: "52010101", status: "Active" },
+  { id: "gl-702", controlId: "ctl-71", title: "Misc Expense B", manualCode: "52010102", status: "Active" },
+  { id: "gl-703", controlId: "ctl-71", title: "Misc Expense C", manualCode: "52010103", status: "Active" },
+
+  // Inventory (ctl-81)
+  { id: "gl-801", controlId: "ctl-81", title: "Raw Materials Batch A", manualCode: "15110101", status: "Active" },
+  { id: "gl-802", controlId: "ctl-81", title: "Raw Materials Batch B", manualCode: "15110102", status: "Active" },
+  { id: "gl-803", controlId: "ctl-81", title: "Raw Materials Batch C", manualCode: "15110103", status: "Active" },
+
+  // Fixed Assets (ctl-91)
+  { id: "gl-901", controlId: "ctl-91", title: "Machine A", manualCode: "12110101", status: "Active" },
+  { id: "gl-902", controlId: "ctl-91", title: "Machine B", manualCode: "12110102", status: "Active" },
+  { id: "gl-903", controlId: "ctl-91", title: "Machine C", manualCode: "12110103", status: "Active" },
+
+  // Payroll (ctl-101)
+  { id: "gl-1001", controlId: "ctl-101", title: "Salary - Admin", manualCode: "55110101", status: "Active" },
+  { id: "gl-1002", controlId: "ctl-101", title: "Salary - Sales", manualCode: "55110102", status: "Active" },
+  { id: "gl-1003", controlId: "ctl-101", title: "Salary - Ops", manualCode: "55110103", status: "Active" },
 ]
 
 function uid(prefix: string) {
@@ -1138,7 +1210,6 @@ export default function ChartOfAccountsPage() {
                   className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm"
                   value={groupForm.classId}
                   onChange={(e) => setGroupForm((p) => ({ ...p, classId: e.target.value }))}
-                  disabled={Boolean(groupForm.editing)}
                 >
                   <option value="">Select class</option>
                   {classOptions.map((c) => (
@@ -1210,7 +1281,6 @@ export default function ChartOfAccountsPage() {
                   className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm"
                   value={subGroupForm.groupId}
                   onChange={(e) => setSubGroupForm((p) => ({ ...p, groupId: e.target.value }))}
-                  disabled={Boolean(subGroupForm.editing)}
                 >
                   <option value="">Select group</option>
                   {groupList.map((g) => (
@@ -1282,7 +1352,6 @@ export default function ChartOfAccountsPage() {
                   className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm"
                   value={controlForm.subGroupId}
                   onChange={(e) => setControlForm((p) => ({ ...p, subGroupId: e.target.value }))}
-                  disabled={Boolean(controlForm.editing)}
                 >
                   <option value="">Select sub group</option>
                   {subGroupList.map((sg) => (
