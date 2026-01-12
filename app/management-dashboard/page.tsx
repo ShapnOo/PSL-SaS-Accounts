@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Bell, Calendar, Download, Menu, Search } from "lucide-react"
+import { Bell, Calendar, Download, Filter, Menu, Search } from "lucide-react"
 import {
   Area,
   AreaChart,
@@ -597,6 +597,7 @@ export default function ManagementDashboardPage() {
         return acc
       }, {}),
   )
+  const [selectorOpen, setSelectorOpen] = useState("")
 
   // Persist chart view selection per card
   useEffect(() => {
@@ -823,25 +824,39 @@ export default function ManagementDashboardPage() {
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {managementCards.map((card) => (
               <Card key={card.id} className="border border-border/40 bg-white shadow-lg shadow-slate-900/5">
-                <CardHeader className="space-y-2 pb-1">
+                <CardHeader className="relative space-y-2 pb-1">
                   <div className="flex items-start justify-between gap-3">
                     <CardTitle className="text-sm font-semibold text-slate-900">{card.title}</CardTitle>
                     <div className="flex items-start gap-2">
-                      <select
-                        value={managementChartViews[card.id]}
-                        onChange={(event) =>
-                          setManagementChartViews((prev) => ({ ...prev, [card.id]: event.target.value as ChartView }))
-                        }
-                        className="h-8 rounded border border-slate-200 bg-white px-3 text-[12px] text-slate-600"
-                      >
-                        {chartViewOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
                       <div className="text-right text-xs text-slate-500">
                         <p className="text-base font-semibold text-slate-900 leading-tight">{card.metric}</p>
+                      </div>
+                      <div className="relative">
+                        <button
+                          className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+                          onClick={() => setSelectorOpen((prev) => (prev === card.id ? "" : card.id))}
+                        >
+                          <Filter className="h-4 w-4" />
+                        </button>
+                        {selectorOpen === card.id && (
+                          <div className="absolute right-0 top-9 z-20 w-44 rounded-md border border-slate-200 bg-white py-1 shadow-lg">
+                            {chartViewOptions.map((option) => (
+                              <button
+                                key={option.value}
+                                className={`flex w-full items-center justify-between px-3 py-2 text-[12px] text-slate-700 hover:bg-slate-100 ${
+                                  managementChartViews[card.id] === option.value ? "font-semibold text-slate-900" : ""
+                                }`}
+                                onClick={() => {
+                                  setManagementChartViews((prev) => ({ ...prev, [card.id]: option.value as ChartView }))
+                                  setSelectorOpen("")
+                                }}
+                              >
+                                <span>{option.label}</span>
+                                {managementChartViews[card.id] === option.value && <span className="text-emerald-500">●</span>}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
