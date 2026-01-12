@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input"
 import { QuickAccess } from "@/components/quick-access"
 
 type ChartView = "line" | "bar" | "area" | "pie"
+type ChartSeries = { key: string; label: string; color?: string }
 
 const durationFilters = [
   { label: "Today", value: "Today" },
@@ -101,27 +102,34 @@ const userDashboardCards = [
   },
 ] as const
 
-const chartDefinitions: Record<
-  typeof userDashboardCards[number]["chartKey"],
-  {
-    trend: { label: string; value: number }[]
-    breakdown: { name: string; value: number }[]
-  }
-> = {
+type ChartDefinition = {
+  trend: Array<{ label: string; [key: string]: number | string }>
+  breakdown: { name: string; value: number }[]
+  series?: ChartSeries[]
+  valueKey?: string
+}
+
+const chartDefinitions: Record<typeof userDashboardCards[number]["chartKey"], ChartDefinition> = {
   totalVoucher: {
+    series: [
+      { key: "sales", label: "Sales", color: "#2563eb" },
+      { key: "purchases", label: "Purchases", color: "#f97316" },
+      { key: "journal", label: "Journal", color: "#22c55e" },
+      { key: "cash", label: "Cash", color: "#0ea5e9" },
+    ],
     trend: [
-      { label: "Jan", value: 102 },
-      { label: "Feb", value: 134 },
-      { label: "Mar", value: 138 },
-      { label: "Apr", value: 160 },
-      { label: "May", value: 152 },
-      { label: "Jun", value: 172 },
-      { label: "Jul", value: 165 },
-      { label: "Aug", value: 178 },
-      { label: "Sep", value: 189 },
-      { label: "Oct", value: 204 },
-      { label: "Nov", value: 198 },
-      { label: "Dec", value: 212 },
+      { label: "Jan", sales: 55, purchases: 22, journal: 14, cash: 11 },
+      { label: "Feb", sales: 68, purchases: 27, journal: 16, cash: 12 },
+      { label: "Mar", sales: 72, purchases: 30, journal: 18, cash: 18 },
+      { label: "Apr", sales: 85, purchases: 32, journal: 20, cash: 23 },
+      { label: "May", sales: 79, purchases: 28, journal: 19, cash: 26 },
+      { label: "Jun", sales: 90, purchases: 31, journal: 22, cash: 29 },
+      { label: "Jul", sales: 88, purchases: 33, journal: 21, cash: 23 },
+      { label: "Aug", sales: 92, purchases: 35, journal: 23, cash: 28 },
+      { label: "Sep", sales: 98, purchases: 38, journal: 25, cash: 28 },
+      { label: "Oct", sales: 105, purchases: 41, journal: 26, cash: 32 },
+      { label: "Nov", sales: 101, purchases: 39, journal: 25, cash: 33 },
+      { label: "Dec", sales: 110, purchases: 42, journal: 27, cash: 33 },
     ],
     breakdown: [
       { name: "Sales", value: 640 },
@@ -131,19 +139,25 @@ const chartDefinitions: Record<
     ],
   },
   expenseTrend: {
+    series: [
+      { key: "payroll", label: "Payroll", color: "#e11d48" },
+      { key: "utilities", label: "Utilities", color: "#6366f1" },
+      { key: "travel", label: "Travel", color: "#f59e0b" },
+      { key: "supplies", label: "Supplies", color: "#10b981" },
+    ],
     trend: [
-      { label: "Jan", value: 70 },
-      { label: "Feb", value: 120 },
-      { label: "Mar", value: 150 },
-      { label: "Apr", value: 133 },
-      { label: "May", value: 145 },
-      { label: "Jun", value: 121 },
-      { label: "Jul", value: 138 },
-      { label: "Aug", value: 142 },
-      { label: "Sep", value: 158 },
-      { label: "Oct", value: 151 },
-      { label: "Nov", value: 164 },
-      { label: "Dec", value: 178 },
+      { label: "Jan", payroll: 70, utilities: 22, travel: 12, supplies: 8 },
+      { label: "Feb", payroll: 85, utilities: 28, travel: 15, supplies: 9 },
+      { label: "Mar", payroll: 92, utilities: 30, travel: 18, supplies: 10 },
+      { label: "Apr", payroll: 88, utilities: 26, travel: 14, supplies: 9 },
+      { label: "May", payroll: 96, utilities: 32, travel: 17, supplies: 11 },
+      { label: "Jun", payroll: 90, utilities: 29, travel: 16, supplies: 10 },
+      { label: "Jul", payroll: 98, utilities: 33, travel: 19, supplies: 11 },
+      { label: "Aug", payroll: 102, utilities: 34, travel: 21, supplies: 12 },
+      { label: "Sep", payroll: 110, utilities: 36, travel: 22, supplies: 13 },
+      { label: "Oct", payroll: 108, utilities: 35, travel: 20, supplies: 12 },
+      { label: "Nov", payroll: 115, utilities: 37, travel: 23, supplies: 13 },
+      { label: "Dec", payroll: 120, utilities: 39, travel: 24, supplies: 14 },
     ],
     breakdown: [
       { name: "Payroll", value: 210 },
@@ -153,19 +167,23 @@ const chartDefinitions: Record<
     ],
   },
   receivablePayable: {
+    series: [
+      { key: "receivable", label: "Receivable", color: "#0ea5e9" },
+      { key: "payable", label: "Payable", color: "#ef4444" },
+    ],
     trend: [
-      { label: "Jan", value: 42 },
-      { label: "Feb", value: 48 },
-      { label: "Mar", value: 40 },
-      { label: "Apr", value: 55 },
-      { label: "May", value: 51 },
-      { label: "Jun", value: 61 },
-      { label: "Jul", value: 57 },
-      { label: "Aug", value: 63 },
-      { label: "Sep", value: 58 },
-      { label: "Oct", value: 65 },
-      { label: "Nov", value: 62 },
-      { label: "Dec", value: 68 },
+      { label: "Jan", receivable: 52, payable: 45 },
+      { label: "Feb", receivable: 55, payable: 46 },
+      { label: "Mar", receivable: 57, payable: 47 },
+      { label: "Apr", receivable: 60, payable: 49 },
+      { label: "May", receivable: 59, payable: 48 },
+      { label: "Jun", receivable: 63, payable: 50 },
+      { label: "Jul", receivable: 66, payable: 52 },
+      { label: "Aug", receivable: 64, payable: 51 },
+      { label: "Sep", receivable: 67, payable: 53 },
+      { label: "Oct", receivable: 70, payable: 54 },
+      { label: "Nov", receivable: 68, payable: 52 },
+      { label: "Dec", receivable: 72, payable: 55 },
     ],
     breakdown: [
       { name: "Receivable", value: 68 },
@@ -173,11 +191,25 @@ const chartDefinitions: Record<
     ],
   },
   agingStatus: {
+    series: [
+      { key: "current", label: "0-30", color: "#22c55e" },
+      { key: "mid", label: "31-60", color: "#eab308" },
+      { key: "late", label: "61-90", color: "#f97316" },
+      { key: "critical", label: "90+", color: "#ef4444" },
+    ],
     trend: [
-      { label: "0-30", value: 38 },
-      { label: "31-60", value: 22 },
-      { label: "61-90", value: 12 },
-      { label: "90+", value: 8 },
+      { label: "Jan", current: 62, mid: 18, late: 10, critical: 5 },
+      { label: "Feb", current: 64, mid: 19, late: 9, critical: 6 },
+      { label: "Mar", current: 63, mid: 20, late: 10, critical: 7 },
+      { label: "Apr", current: 65, mid: 19, late: 11, critical: 7 },
+      { label: "May", current: 66, mid: 18, late: 11, critical: 7 },
+      { label: "Jun", current: 67, mid: 19, late: 10, critical: 7 },
+      { label: "Jul", current: 68, mid: 18, late: 11, critical: 7 },
+      { label: "Aug", current: 69, mid: 19, late: 10, critical: 6 },
+      { label: "Sep", current: 70, mid: 20, late: 9, critical: 6 },
+      { label: "Oct", current: 68, mid: 21, late: 10, critical: 7 },
+      { label: "Nov", current: 67, mid: 22, late: 10, critical: 7 },
+      { label: "Dec", current: 69, mid: 21, late: 11, critical: 7 },
     ],
     breakdown: [
       { name: "0-30", value: 68 },
@@ -187,36 +219,51 @@ const chartDefinitions: Record<
     ],
   },
   employeeAdvance: {
+    series: [
+      { key: "travel", label: "Travel", color: "#0ea5e9" },
+      { key: "housing", label: "Housing", color: "#8b5cf6" },
+      { key: "events", label: "Events", color: "#22c55e" },
+      { key: "petty", label: "Petty", color: "#f97316" },
+    ],
     trend: [
-      { label: "Jan", value: 12 },
-      { label: "Feb", value: 18 },
-      { label: "Mar", value: 20 },
-      { label: "Apr", value: 25 },
-      { label: "May", value: 15 },
-      { label: "Jun", value: 22 },
-      { label: "Jul", value: 18 },
-      { label: "Aug", value: 26 },
-      { label: "Sep", value: 23 },
-      { label: "Oct", value: 30 },
-      { label: "Nov", value: 28 },
-      { label: "Dec", value: 32 },
+      { label: "Jan", travel: 12, housing: 6, events: 8, petty: 5 },
+      { label: "Feb", travel: 15, housing: 7, events: 9, petty: 6 },
+      { label: "Mar", travel: 16, housing: 8, events: 10, petty: 6 },
+      { label: "Apr", travel: 18, housing: 9, events: 11, petty: 7 },
+      { label: "May", travel: 14, housing: 8, events: 10, petty: 6 },
+      { label: "Jun", travel: 17, housing: 9, events: 11, petty: 7 },
+      { label: "Jul", travel: 15, housing: 8, events: 10, petty: 6 },
+      { label: "Aug", travel: 19, housing: 10, events: 12, petty: 7 },
+      { label: "Sep", travel: 18, housing: 9, events: 11, petty: 6 },
+      { label: "Oct", travel: 21, housing: 11, events: 13, petty: 7 },
+      { label: "Nov", travel: 20, housing: 10, events: 12, petty: 7 },
+      { label: "Dec", travel: 22, housing: 11, events: 13, petty: 8 },
     ],
     breakdown: [
-      { name: "Travel", value: 14 },
-      { name: "Housing", value: 10 },
+      { name: "Travel", value: 39 },
+      { name: "Housing", value: 33 },
       { name: "Events", value: 18 },
       { name: "Petty", value: 12 },
     ],
   },
   intercompany: {
+    series: [
+      { key: "settled", label: "Settled", color: "#22c55e" },
+      { key: "pending", label: "Pending", color: "#f97316" },
+    ],
     trend: [
-      { label: "Jan", value: 35 },
-      { label: "Feb", value: 42 },
-      { label: "Mar", value: 37 },
-      { label: "Apr", value: 29 },
-      { label: "May", value: 45 },
-      { label: "Jun", value: 53 },
-      { label: "Jul", value: 50 },
+      { label: "Jan", settled: 22, pending: 13 },
+      { label: "Feb", settled: 28, pending: 14 },
+      { label: "Mar", settled: 26, pending: 11 },
+      { label: "Apr", settled: 20, pending: 9 },
+      { label: "May", settled: 30, pending: 15 },
+      { label: "Jun", settled: 33, pending: 20 },
+      { label: "Jul", settled: 32, pending: 18 },
+      { label: "Aug", settled: 35, pending: 16 },
+      { label: "Sep", settled: 34, pending: 17 },
+      { label: "Oct", settled: 37, pending: 18 },
+      { label: "Nov", settled: 36, pending: 17 },
+      { label: "Dec", settled: 38, pending: 19 },
     ],
     breakdown: [
       { name: "Settled", value: 76 },
@@ -270,6 +317,8 @@ export default function UserDashboardPage() {
     const definition = chartDefinitions[card.chartKey]
     const trend = definition.trend
     const breakdown = definition.breakdown
+    const series = definition.series
+    const valueKey = definition.valueKey ?? "value"
 
     const tooltipStyle = {
       backgroundColor: "#fff",
@@ -281,22 +330,33 @@ export default function UserDashboardPage() {
 
     switch (view) {
       case "bar": {
-        const color = card.accent
         return (
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={trend} margin={{ top: 6, right: 10, left: 0, bottom: 6 }}>
+            <BarChart data={trend} margin={{ top: 6, right: 10, left: 0, bottom: 6 }} barGap={6} barCategoryGap="18%">
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#6b7280" }} tickLine={false} axisLine={{ stroke: "#e5e7eb" }} />
               <YAxis tick={{ fontSize: 10, fill: "#6b7280" }} tickLine={false} axisLine={{ stroke: "#e5e7eb" }} />
               <Tooltip contentStyle={tooltipStyle} formatter={(value: number) => `${value}`} />
-              <Bar dataKey="value" fill={color} radius={[6, 6, 0, 0]} />
+              <Legend verticalAlign="top" align="right" iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 10, paddingBottom: 6, color: "#475569" }} />
+              {series
+                ? series.map((s, idx) => (
+                    <Bar
+                      key={s.key}
+                      dataKey={s.key}
+                      name={s.label}
+                      fill={s.color ?? palette[idx % palette.length]}
+                      radius={[4, 4, 0, 0]}
+                      barSize={16}
+                    />
+                  ))
+                : (
+                  <Bar dataKey={valueKey} name={card.title} fill={card.accent} radius={[4, 4, 0, 0]} barSize={18} />
+                )}
             </BarChart>
           </ResponsiveContainer>
         )
       }
       case "area": {
-        const gradientId = `${card.id}-area-gradient`
-        const color = card.accent
         return (
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={trend} margin={{ top: 6, right: 10, left: 0, bottom: 6 }}>
@@ -304,13 +364,44 @@ export default function UserDashboardPage() {
               <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#6b7280" }} tickLine={false} axisLine={{ stroke: "#e5e7eb" }} />
               <YAxis tick={{ fontSize: 10, fill: "#6b7280" }} tickLine={false} axisLine={{ stroke: "#e5e7eb" }} />
               <Tooltip contentStyle={tooltipStyle} formatter={(value: number) => `${value}`} />
-              <defs>
-                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={color} stopOpacity={0.4} />
-                  <stop offset="80%" stopColor={color} stopOpacity={0.1} />
-                </linearGradient>
-              </defs>
-              <Area type="monotone" dataKey="value" stroke={color} fill={`url(#${gradientId})`} strokeWidth={2} />
+              <Legend verticalAlign="top" align="right" iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 10, paddingBottom: 6, color: "#475569" }} />
+              {series
+                ? series.map((s, idx) => {
+                    const gradientId = `${card.id}-${s.key}-gradient`
+                    const color = s.color ?? palette[idx % palette.length]
+                    return (
+                      <defs key={gradientId}>
+                        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={color} stopOpacity={0.4} />
+                          <stop offset="80%" stopColor={color} stopOpacity={0.1} />
+                        </linearGradient>
+                      </defs>
+                    )
+                  })
+                : null}
+              {series
+                ? series.map((s, idx) => {
+                    const gradientId = `${card.id}-${s.key}-gradient`
+                    const color = s.color ?? palette[idx % palette.length]
+                    return <Area key={s.key} type="monotone" dataKey={s.key} name={s.label} stackId="1" stroke={color} fill={`url(#${gradientId})`} strokeWidth={2} />
+                  })
+                : (
+                  <Area
+                    type="monotone"
+                    dataKey={valueKey}
+                    name={card.title}
+                    stroke={card.accent}
+                    fill={`url(#${card.id}-area-gradient)`}
+                    strokeWidth={2}
+                  >
+                    <defs>
+                      <linearGradient id={`${card.id}-area-gradient`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={card.accent} stopOpacity={0.4} />
+                        <stop offset="80%" stopColor={card.accent} stopOpacity={0.1} />
+                      </linearGradient>
+                    </defs>
+                  </Area>
+                )}
             </AreaChart>
           </ResponsiveContainer>
         )
@@ -335,7 +426,6 @@ export default function UserDashboardPage() {
           </ResponsiveContainer>
         )
       default: {
-        const color = card.accent
         return (
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={trend} margin={{ top: 6, right: 10, left: 0, bottom: 6 }}>
@@ -343,7 +433,12 @@ export default function UserDashboardPage() {
               <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#6b7280" }} tickLine={false} axisLine={{ stroke: "#e5e7eb" }} />
               <YAxis tick={{ fontSize: 10, fill: "#6b7280" }} tickLine={false} axisLine={{ stroke: "#e5e7eb" }} />
               <Tooltip contentStyle={tooltipStyle} formatter={(value: number) => `${value}`} />
-              <Line type="monotone" dataKey="value" stroke={color} strokeWidth={2} dot={{ r: 2 }} />
+              <Legend verticalAlign="top" align="right" iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 10, paddingBottom: 6, color: "#475569" }} />
+              {series
+                ? series.map((s, idx) => (
+                    <Line key={s.key} type="monotone" dataKey={s.key} name={s.label} stroke={s.color ?? palette[idx % palette.length]} strokeWidth={2} dot={{ r: 2 }} />
+                  ))
+                : <Line type="monotone" dataKey={valueKey} name={card.title} stroke={card.accent} strokeWidth={2} dot={{ r: 2 }} />}
             </LineChart>
           </ResponsiveContainer>
         )
