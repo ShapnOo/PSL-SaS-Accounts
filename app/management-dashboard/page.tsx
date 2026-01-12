@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useState } from "react"
 import { Bell, Menu, Search } from "lucide-react"
 import {
   Area,
@@ -377,16 +377,6 @@ export default function ManagementDashboardPage() {
       }, {}),
   )
 
-  const panelStats = useMemo(
-    () => [
-      { label: "Active Projects", value: "28" },
-      { label: "Unresolved Issues", value: "6" },
-      { label: "Cash Reserve", value: "BDT 780k" },
-      { label: "Upcoming Audits", value: "2" },
-    ],
-    [],
-  )
-
   const renderChart = (card: typeof managementCards[number], view: ChartView) => {
     const definition = managementChartData[card.chartKey]
     const trend = definition.trend
@@ -502,19 +492,6 @@ export default function ManagementDashboardPage() {
           </div>
         </header>
         <section className="p-4 lg:p-6 space-y-5">
-          <div className="grid gap-4 md:grid-cols-4">
-            {panelStats.map((stat) => (
-              <Card key={stat.label} className="border border-border/40 bg-white/80 shadow-sm">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs text-slate-500">{stat.label}</p>
-                    <Badge variant="outline">{stat.value}</Badge>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
           <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-900 via-slate-900/40 to-slate-800/70 px-4 py-3 text-xs text-white shadow-lg">
             <span className="text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-200">Duration filter</span>
             <div className="flex flex-wrap gap-2">

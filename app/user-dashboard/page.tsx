@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useState } from "react"
 import { Bell, Menu, Search } from "lucide-react"
 import {
   Area,
@@ -231,16 +231,6 @@ export default function UserDashboardPage() {
       }, {}),
   )
 
-  const overviewStats = useMemo(
-    () => [
-      { label: "Active Users", value: "42", hint: "Team members with system access" },
-      { label: "Pending Reviews", value: "18", hint: "Awaiting approval in queue" },
-      { label: "Month Lock Status", value: "Open", hint: "Branch: HQ" },
-      { label: "Avg. SLA", value: "2.4 hrs", hint: "Time to resolve tasks" },
-    ],
-    [],
-  )
-
   const renderChart = (card: typeof userDashboardCards[number], view: ChartView) => {
     const definition = chartDefinitions[card.chartKey]
     const trend = definition.trend
@@ -361,20 +351,6 @@ export default function UserDashboardPage() {
         </header>
 
         <section className="p-4 lg:p-6 space-y-5">
-          <div className="grid gap-4 md:grid-cols-4">
-            {overviewStats.map((stat) => (
-              <Card key={stat.label} className="border border-border/40 bg-white/70 shadow-sm">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-xs text-slate-500">{stat.label}</p>
-                    <Badge variant="outline">{stat.value}</Badge>
-                  </div>
-                  <p className="mt-2 text-sm text-slate-600">{stat.hint}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
           <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-900 via-slate-900/40 to-slate-800/70 px-4 py-3 text-xs text-white shadow-lg">
             <span className="text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-200">Duration filter</span>
             <div className="flex flex-wrap gap-2">
