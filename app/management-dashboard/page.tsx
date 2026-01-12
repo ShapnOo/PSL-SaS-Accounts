@@ -129,7 +129,7 @@ const managementCards = [
   },
   {
     id: "aging-status",
-    title: "Aging Status",
+    title: "Receivable vs Payable Aging Status",
     description: "Outstanding receivables grouped by days.",
     metric: "72 flagged items",
     change: "+6 items > 90d",
@@ -681,7 +681,6 @@ export default function ManagementDashboardPage() {
                       </select>
                       <div className="text-right text-xs text-slate-500">
                         <p className="text-base font-semibold text-slate-900">{card.metric}</p>
-                        <p className="text-[11px]">{card.change}</p>
                       </div>
                     </div>
                   </div>

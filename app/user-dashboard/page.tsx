@@ -75,7 +75,7 @@ const userDashboardCards = [
   },
   {
     id: "aging-status",
-    title: "Aging Status",
+    title: "Receivable vs Payable Aging Status",
     description: "Buckets showing how long receivables sit.",
     metric: "78 flagged items",
     change: "+12 items past 90 days",
@@ -541,7 +541,6 @@ export default function UserDashboardPage() {
                       </select>
                       <div className="text-right text-xs text-slate-500">
                         <span className="block text-base font-semibold text-slate-900">{card.metric}</span>
-                        <span className="text-[11px] text-slate-500">{card.change}</span>
                       </div>
                     </div>
                   </div>
