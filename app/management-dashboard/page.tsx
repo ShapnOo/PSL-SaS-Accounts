@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { Bell, Menu, Search } from "lucide-react"
+import { useEffect, useState } from "react"
+import { Bell, Calendar, Download, Menu, Search } from "lucide-react"
 import {
   Area,
   AreaChart,
@@ -64,6 +64,14 @@ const summaryTiles = [
 ] as const
 
 const managementCards = [
+  {
+    id: "total-voucher",
+    title: "Total Voucher",
+    metric: "BDT 1,248",
+    change: "+8.3% vs last 30d",
+    accent: "#2563eb",
+    chartKey: "totalVoucher",
+  },
   {
     id: "working-capital",
     title: "Working Capital Position",
@@ -191,6 +199,39 @@ type ChartDefinition = {
 }
 
 const managementChartData: Record<typeof managementCards[number]["chartKey"], ChartDefinition> = {
+  totalVoucher: {
+    series: [
+      { key: "sales", label: "Sales", color: "#2563eb" },
+      { key: "purchases", label: "Purchases", color: "#f97316" },
+      { key: "journal", label: "Journal", color: "#22c55e" },
+      { key: "cash", label: "Cash", color: "#0ea5e9" },
+    ],
+    trend: [
+      { label: "Jan", sales: 55, purchases: 22, journal: 14, cash: 11 },
+      { label: "Feb", sales: 68, purchases: 27, journal: 16, cash: 12 },
+      { label: "Mar", sales: 72, purchases: 30, journal: 18, cash: 18 },
+      { label: "Apr", sales: 85, purchases: 32, journal: 20, cash: 23 },
+      { label: "May", sales: 79, purchases: 28, journal: 19, cash: 26 },
+      { label: "Jun", sales: 90, purchases: 31, journal: 22, cash: 29 },
+      { label: "Jul", sales: 88, purchases: 33, journal: 21, cash: 23 },
+      { label: "Aug", sales: 92, purchases: 35, journal: 23, cash: 28 },
+      { label: "Sep", sales: 98, purchases: 38, journal: 25, cash: 28 },
+      { label: "Oct", sales: 105, purchases: 41, journal: 26, cash: 32 },
+      { label: "Nov", sales: 101, purchases: 39, journal: 25, cash: 33 },
+      { label: "Dec", sales: 110, purchases: 42, journal: 27, cash: 33 },
+      { label: "Jan-2", sales: 115, purchases: 44, journal: 29, cash: 35 },
+      { label: "Feb-2", sales: 122, purchases: 47, journal: 30, cash: 37 },
+      { label: "Mar-2", sales: 128, purchases: 50, journal: 32, cash: 39 },
+      { label: "Apr-2", sales: 134, purchases: 53, journal: 34, cash: 41 },
+      { label: "May-2", sales: 139, purchases: 55, journal: 35, cash: 43 },
+    ],
+    breakdown: [
+      { name: "Sales", value: 640 },
+      { name: "Purchases", value: 270 },
+      { name: "Journal", value: 165 },
+      { name: "Cash", value: 173 },
+    ],
+  },
   workingCapital: {
     series: [
       { key: "assets", label: "Assets", color: "#2563eb" },
@@ -204,6 +245,14 @@ const managementChartData: Record<typeof managementCards[number]["chartKey"], Ch
       { label: "May", assets: 79, liabilities: 46 },
       { label: "Jun", assets: 83, liabilities: 49 },
       { label: "Jul", assets: 85, liabilities: 50 },
+      { label: "Aug", assets: 88, liabilities: 52 },
+      { label: "Sep", assets: 92, liabilities: 54 },
+      { label: "Oct", assets: 95, liabilities: 55 },
+      { label: "Nov", assets: 98, liabilities: 56 },
+      { label: "Dec", assets: 102, liabilities: 58 },
+      { label: "Jan-2", assets: 104, liabilities: 59 },
+      { label: "Feb-2", assets: 107, liabilities: 60 },
+      { label: "Mar-2", assets: 110, liabilities: 62 },
     ],
     breakdown: [
       { name: "Current Assets", value: 58 },
@@ -223,6 +272,14 @@ const managementChartData: Record<typeof managementCards[number]["chartKey"], Ch
       { label: "May", revenue: 110, expense: 60 },
       { label: "Jun", revenue: 94, expense: 58 },
       { label: "Jul", revenue: 118, expense: 62 },
+      { label: "Aug", revenue: 105, expense: 59 },
+      { label: "Sep", revenue: 122, expense: 64 },
+      { label: "Oct", revenue: 128, expense: 68 },
+      { label: "Nov", revenue: 135, expense: 70 },
+      { label: "Dec", revenue: 142, expense: 73 },
+      { label: "Jan-2", revenue: 148, expense: 75 },
+      { label: "Feb-2", revenue: 152, expense: 78 },
+      { label: "Mar-2", revenue: 158, expense: 80 },
     ],
     breakdown: [
       { name: "Revenue", value: 72 },
@@ -242,6 +299,14 @@ const managementChartData: Record<typeof managementCards[number]["chartKey"], Ch
       { label: "May", assets: 91, liabilities: 49 },
       { label: "Jun", assets: 94, liabilities: 50 },
       { label: "Jul", assets: 97, liabilities: 53 },
+      { label: "Aug", assets: 100, liabilities: 54 },
+      { label: "Sep", assets: 104, liabilities: 56 },
+      { label: "Oct", assets: 107, liabilities: 57 },
+      { label: "Nov", assets: 110, liabilities: 58 },
+      { label: "Dec", assets: 114, liabilities: 59 },
+      { label: "Jan-2", assets: 118, liabilities: 60 },
+      { label: "Feb-2", assets: 121, liabilities: 62 },
+      { label: "Mar-2", assets: 124, liabilities: 63 },
     ],
     breakdown: [
       { name: "Assets", value: 58 },
@@ -261,6 +326,14 @@ const managementChartData: Record<typeof managementCards[number]["chartKey"], Ch
       { label: "May", inflow: 77, outflow: 38 },
       { label: "Jun", inflow: 73, outflow: 34 },
       { label: "Jul", inflow: 80, outflow: 37 },
+      { label: "Aug", inflow: 78, outflow: 36 },
+      { label: "Sep", inflow: 84, outflow: 40 },
+      { label: "Oct", inflow: 88, outflow: 42 },
+      { label: "Nov", inflow: 90, outflow: 43 },
+      { label: "Dec", inflow: 94, outflow: 45 },
+      { label: "Jan-2", inflow: 96, outflow: 46 },
+      { label: "Feb-2", inflow: 100, outflow: 48 },
+      { label: "Mar-2", inflow: 104, outflow: 50 },
     ],
     breakdown: [
       { name: "Inflows", value: 66 },
@@ -280,6 +353,14 @@ const managementChartData: Record<typeof managementCards[number]["chartKey"], Ch
       { label: "May", orders: 53, returns: 10 },
       { label: "Jun", orders: 57, returns: 12 },
       { label: "Jul", orders: 62, returns: 11 },
+      { label: "Aug", orders: 65, returns: 12 },
+      { label: "Sep", orders: 68, returns: 13 },
+      { label: "Oct", orders: 70, returns: 13 },
+      { label: "Nov", orders: 74, returns: 14 },
+      { label: "Dec", orders: 78, returns: 15 },
+      { label: "Jan-2", orders: 82, returns: 16 },
+      { label: "Feb-2", orders: 84, returns: 17 },
+      { label: "Mar-2", orders: 88, returns: 18 },
     ],
     breakdown: [
       { name: "Orders", value: 68 },
@@ -299,6 +380,14 @@ const managementChartData: Record<typeof managementCards[number]["chartKey"], Ch
       { label: "May", onTime: 60, late: 12 },
       { label: "Jun", onTime: 61, late: 13 },
       { label: "Jul", onTime: 68, late: 14 },
+      { label: "Aug", onTime: 66, late: 13 },
+      { label: "Sep", onTime: 70, late: 15 },
+      { label: "Oct", onTime: 74, late: 16 },
+      { label: "Nov", onTime: 76, late: 17 },
+      { label: "Dec", onTime: 80, late: 18 },
+      { label: "Jan-2", onTime: 82, late: 19 },
+      { label: "Feb-2", onTime: 84, late: 20 },
+      { label: "Mar-2", onTime: 86, late: 21 },
     ],
     breakdown: [
       { name: "On Time", value: 72 },
@@ -318,6 +407,14 @@ const managementChartData: Record<typeof managementCards[number]["chartKey"], Ch
       { label: "May", receivable: 59, payable: 48 },
       { label: "Jun", receivable: 63, payable: 50 },
       { label: "Jul", receivable: 66, payable: 52 },
+      { label: "Aug", receivable: 64, payable: 51 },
+      { label: "Sep", receivable: 67, payable: 53 },
+      { label: "Oct", receivable: 70, payable: 54 },
+      { label: "Nov", receivable: 68, payable: 52 },
+      { label: "Dec", receivable: 72, payable: 55 },
+      { label: "Jan-2", receivable: 74, payable: 56 },
+      { label: "Feb-2", receivable: 76, payable: 57 },
+      { label: "Mar-2", receivable: 79, payable: 59 },
     ],
     breakdown: [
       { name: "Receivable", value: 54 },
@@ -333,6 +430,7 @@ const managementChartData: Record<typeof managementCards[number]["chartKey"], Ch
     ],
     trend: [
       { label: "Bucket", current: 62, mid: 23, late: 9, critical: 6 },
+      { label: "Bucket-2", current: 64, mid: 24, late: 10, critical: 6 },
     ],
     breakdown: [
       { name: "0-30", value: 62 },
@@ -356,6 +454,14 @@ const managementChartData: Record<typeof managementCards[number]["chartKey"], Ch
       { label: "May", travel: 12, housing: 6, events: 5, other: 4 },
       { label: "Jun", travel: 11, housing: 5, events: 4, other: 3 },
       { label: "Jul", travel: 13, housing: 6, events: 5, other: 4 },
+      { label: "Aug", travel: 12, housing: 6, events: 5, other: 3 },
+      { label: "Sep", travel: 14, housing: 7, events: 6, other: 4 },
+      { label: "Oct", travel: 15, housing: 7, events: 6, other: 4 },
+      { label: "Nov", travel: 16, housing: 8, events: 7, other: 4 },
+      { label: "Dec", travel: 17, housing: 8, events: 7, other: 5 },
+      { label: "Jan-2", travel: 18, housing: 9, events: 8, other: 5 },
+      { label: "Feb-2", travel: 19, housing: 9, events: 8, other: 5 },
+      { label: "Mar-2", travel: 20, housing: 10, events: 9, other: 6 },
     ],
     breakdown: [
       { name: "Travel", value: 39 },
@@ -377,6 +483,14 @@ const managementChartData: Record<typeof managementCards[number]["chartKey"], Ch
       { label: "May", equity: 60, retained: 16 },
       { label: "Jun", equity: 63, retained: 16 },
       { label: "Jul", equity: 66, retained: 16 },
+      { label: "Aug", equity: 68, retained: 17 },
+      { label: "Sep", equity: 70, retained: 18 },
+      { label: "Oct", equity: 72, retained: 18 },
+      { label: "Nov", equity: 74, retained: 19 },
+      { label: "Dec", equity: 76, retained: 19 },
+      { label: "Jan-2", equity: 78, retained: 20 },
+      { label: "Feb-2", equity: 80, retained: 21 },
+      { label: "Mar-2", equity: 82, retained: 21 },
     ],
     breakdown: [
       { name: "Equity", value: 64 },
@@ -396,6 +510,14 @@ const managementChartData: Record<typeof managementCards[number]["chartKey"], Ch
       { label: "May", income: 72, expense: 43 },
       { label: "Jun", income: 76, expense: 45 },
       { label: "Jul", income: 80, expense: 47 },
+      { label: "Aug", income: 82, expense: 48 },
+      { label: "Sep", income: 85, expense: 50 },
+      { label: "Oct", income: 88, expense: 52 },
+      { label: "Nov", income: 90, expense: 53 },
+      { label: "Dec", income: 93, expense: 55 },
+      { label: "Jan-2", income: 95, expense: 56 },
+      { label: "Feb-2", income: 98, expense: 58 },
+      { label: "Mar-2", income: 101, expense: 59 },
     ],
     breakdown: [
       { name: "Income", value: 67 },
@@ -416,6 +538,14 @@ const managementChartData: Record<typeof managementCards[number]["chartKey"], Ch
       { label: "May", finished: 24, raw: 11, wip: 8 },
       { label: "Jun", finished: 26, raw: 12, wip: 9 },
       { label: "Jul", finished: 28, raw: 12, wip: 10 },
+      { label: "Aug", finished: 27, raw: 13, wip: 10 },
+      { label: "Sep", finished: 29, raw: 13, wip: 11 },
+      { label: "Oct", finished: 30, raw: 14, wip: 11 },
+      { label: "Nov", finished: 31, raw: 15, wip: 12 },
+      { label: "Dec", finished: 33, raw: 16, wip: 12 },
+      { label: "Jan-2", finished: 34, raw: 16, wip: 13 },
+      { label: "Feb-2", finished: 35, raw: 17, wip: 13 },
+      { label: "Mar-2", finished: 36, raw: 17, wip: 14 },
     ],
     breakdown: [
       { name: "Finished Goods", value: 46 },
@@ -437,6 +567,14 @@ const managementChartData: Record<typeof managementCards[number]["chartKey"], Ch
       { label: "May", pl: 31, balanceSheet: 18, cashFlow: 11 },
       { label: "Jun", pl: 34, balanceSheet: 19, cashFlow: 12 },
       { label: "Jul", pl: 36, balanceSheet: 20, cashFlow: 12 },
+      { label: "Aug", pl: 35, balanceSheet: 21, cashFlow: 12 },
+      { label: "Sep", pl: 37, balanceSheet: 22, cashFlow: 13 },
+      { label: "Oct", pl: 39, balanceSheet: 23, cashFlow: 13 },
+      { label: "Nov", pl: 40, balanceSheet: 24, cashFlow: 14 },
+      { label: "Dec", pl: 41, balanceSheet: 25, cashFlow: 14 },
+      { label: "Jan-2", pl: 42, balanceSheet: 26, cashFlow: 15 },
+      { label: "Feb-2", pl: 43, balanceSheet: 27, cashFlow: 15 },
+      { label: "Mar-2", pl: 44, balanceSheet: 28, cashFlow: 16 },
     ],
     breakdown: [
       { name: "P&L", value: 40 },
@@ -459,6 +597,25 @@ export default function ManagementDashboardPage() {
         return acc
       }, {}),
   )
+
+  // Persist chart view selection per card
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const stored = window.localStorage.getItem("management-dashboard-chart-views")
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored) as Record<string, ChartView>
+        setManagementChartViews((prev) => ({ ...prev, ...parsed }))
+      } catch {
+        // ignore parse errors
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    window.localStorage.setItem("management-dashboard-chart-views", JSON.stringify(managementChartViews))
+  }, [managementChartViews])
 
   const renderChart = (card: typeof managementCards[number], view: ChartView) => {
     const definition = managementChartData[card.chartKey]
@@ -622,13 +779,38 @@ export default function ManagementDashboardPage() {
             </div>
           </div>
         </header>
-        <section className="p-4 lg:p-6 space-y-5">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+        <section className="p-3.5 lg:p-4 space-y-3.5">
+          <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200/80 bg-slate-50 px-4 py-3 text-xs text-slate-600 shadow-sm">
+            <div className="flex flex-col">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-500">Overview</span>
+              
+            </div>
+            <div className="ml-auto flex items-center gap-2">
+              <div className="relative min-w-[190px]">
+                <select
+                  value={activeDuration}
+                  onChange={(event) => setActiveDuration(event.target.value)}
+                  className="h-10 w-full appearance-none rounded-full border border-emerald-400/80 bg-white pl-9 pr-8 text-sm font-semibold text-slate-900 shadow-[0_6px_18px_-8px_rgba(16,185,129,0.5)] outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                >
+                  {durationFilters.map((filter) => (
+                    <option key={filter} value={filter} className="text-sm text-slate-800">
+                      {filter}
+                    </option>
+                  ))}
+                </select>
+                <Calendar className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-500" />
+                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">▼</span>
+              </div>
+              
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
             {summaryTiles.map((tile) => (
               <Card key={tile.label} className="border border-border/50 bg-white/90 shadow-sm">
-                <CardContent className="space-y-1 p-4">
+                <CardContent className="space-y-1 p-2.5">
                   <p className="text-[11px] uppercase tracking-[0.3em] text-slate-400">{tile.label}</p>
-                  <p className="text-2xl font-semibold text-slate-900">{tile.value}</p>
+                  <p className="text-lg font-semibold text-slate-900">{tile.value}</p>
                   <p className="text-xs text-slate-500">{tile.caption}</p>
                   <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-600">
                     {tile.type}
@@ -638,31 +820,10 @@ export default function ManagementDashboardPage() {
             ))}
           </div>
 
-          <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-xs text-slate-600 shadow-sm">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-400">Duration</span>
-            <div className="relative min-w-[200px]">
-              <select
-                value={activeDuration}
-                onChange={(event) => setActiveDuration(event.target.value)}
-                className="w-full appearance-none rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 outline-none focus:border-slate-400 focus:ring-2 focus:ring-emerald-200"
-              >
-                {durationFilters.map((filter) => (
-                  <option key={filter} value={filter} className="text-sm text-slate-800">
-                    {filter}
-                  </option>
-                ))}
-              </select>
-              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">▼</span>
-            </div>
-            <span className="ml-auto rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-500">
-              Viewing {activeDuration}
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {managementCards.map((card) => (
               <Card key={card.id} className="border border-border/40 bg-white shadow-lg shadow-slate-900/5">
-                <CardHeader className="space-y-3 pb-2">
+                <CardHeader className="space-y-2 pb-1">
                   <div className="flex items-start justify-between gap-3">
                     <CardTitle className="text-sm font-semibold text-slate-900">{card.title}</CardTitle>
                     <div className="flex items-start gap-2">
@@ -680,16 +841,15 @@ export default function ManagementDashboardPage() {
                         ))}
                       </select>
                       <div className="text-right text-xs text-slate-500">
-                        <p className="text-base font-semibold text-slate-900">{card.metric}</p>
+                        <p className="text-base font-semibold text-slate-900 leading-tight">{card.metric}</p>
                       </div>
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="flex flex-col gap-3">
-                  <div className="h-[200px] w-full">{renderChart(card, managementChartViews[card.id])}</div>
+                <CardContent className="flex flex-col gap-2">
+                  <div className="h-[180px] w-full">{renderChart(card, managementChartViews[card.id])}</div>
                   <div className="flex flex-wrap gap-2 text-[11px] text-slate-500">
-                    <span className="rounded-full bg-slate-100 px-3 py-1">Filter: {activeDuration}</span>
-                    <span className="rounded-full bg-slate-100 px-3 py-1">View: {managementChartViews[card.id]}</span>
+                   
                   </div>
                 </CardContent>
               </Card>

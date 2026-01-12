@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { Bell, Menu, Search } from "lucide-react"
+import { useEffect, useState } from "react"
+import { Bell, Calendar, Download, Menu, Search } from "lucide-react"
 import {
   Area,
   AreaChart,
@@ -130,6 +130,11 @@ const chartDefinitions: Record<typeof userDashboardCards[number]["chartKey"], Ch
       { label: "Oct", sales: 105, purchases: 41, journal: 26, cash: 32 },
       { label: "Nov", sales: 101, purchases: 39, journal: 25, cash: 33 },
       { label: "Dec", sales: 110, purchases: 42, journal: 27, cash: 33 },
+      { label: "Jan-2", sales: 115, purchases: 44, journal: 29, cash: 35 },
+      { label: "Feb-2", sales: 122, purchases: 47, journal: 30, cash: 37 },
+      { label: "Mar-2", sales: 128, purchases: 50, journal: 32, cash: 39 },
+      { label: "Apr-2", sales: 134, purchases: 53, journal: 34, cash: 41 },
+      { label: "May-2", sales: 139, purchases: 55, journal: 35, cash: 43 },
     ],
     breakdown: [
       { name: "Sales", value: 640 },
@@ -158,6 +163,11 @@ const chartDefinitions: Record<typeof userDashboardCards[number]["chartKey"], Ch
       { label: "Oct", payroll: 108, utilities: 35, travel: 20, supplies: 12 },
       { label: "Nov", payroll: 115, utilities: 37, travel: 23, supplies: 13 },
       { label: "Dec", payroll: 120, utilities: 39, travel: 24, supplies: 14 },
+      { label: "Jan-2", payroll: 125, utilities: 40, travel: 25, supplies: 15 },
+      { label: "Feb-2", payroll: 130, utilities: 42, travel: 27, supplies: 16 },
+      { label: "Mar-2", payroll: 136, utilities: 44, travel: 29, supplies: 17 },
+      { label: "Apr-2", payroll: 132, utilities: 41, travel: 27, supplies: 16 },
+      { label: "May-2", payroll: 138, utilities: 43, travel: 30, supplies: 17 },
     ],
     breakdown: [
       { name: "Payroll", value: 210 },
@@ -184,6 +194,11 @@ const chartDefinitions: Record<typeof userDashboardCards[number]["chartKey"], Ch
       { label: "Oct", receivable: 70, payable: 54 },
       { label: "Nov", receivable: 68, payable: 52 },
       { label: "Dec", receivable: 72, payable: 55 },
+      { label: "Jan-2", receivable: 74, payable: 56 },
+      { label: "Feb-2", receivable: 76, payable: 57 },
+      { label: "Mar-2", receivable: 79, payable: 59 },
+      { label: "Apr-2", receivable: 82, payable: 61 },
+      { label: "May-2", receivable: 81, payable: 60 },
     ],
     breakdown: [
       { name: "Receivable", value: 68 },
@@ -210,6 +225,10 @@ const chartDefinitions: Record<typeof userDashboardCards[number]["chartKey"], Ch
       { label: "Oct", current: 68, mid: 21, late: 10, critical: 7 },
       { label: "Nov", current: 67, mid: 22, late: 10, critical: 7 },
       { label: "Dec", current: 69, mid: 21, late: 11, critical: 7 },
+      { label: "Jan-2", current: 70, mid: 21, late: 11, critical: 7 },
+      { label: "Feb-2", current: 71, mid: 22, late: 12, critical: 7 },
+      { label: "Mar-2", current: 72, mid: 23, late: 11, critical: 8 },
+      { label: "Apr-2", current: 73, mid: 22, late: 12, critical: 8 },
     ],
     breakdown: [
       { name: "0-30", value: 68 },
@@ -238,6 +257,9 @@ const chartDefinitions: Record<typeof userDashboardCards[number]["chartKey"], Ch
       { label: "Oct", travel: 21, housing: 11, events: 13, petty: 7 },
       { label: "Nov", travel: 20, housing: 10, events: 12, petty: 7 },
       { label: "Dec", travel: 22, housing: 11, events: 13, petty: 8 },
+      { label: "Jan-2", travel: 23, housing: 12, events: 14, petty: 8 },
+      { label: "Feb-2", travel: 24, housing: 12, events: 15, petty: 9 },
+      { label: "Mar-2", travel: 25, housing: 13, events: 16, petty: 9 },
     ],
     breakdown: [
       { name: "Travel", value: 39 },
@@ -264,6 +286,9 @@ const chartDefinitions: Record<typeof userDashboardCards[number]["chartKey"], Ch
       { label: "Oct", settled: 37, pending: 18 },
       { label: "Nov", settled: 36, pending: 17 },
       { label: "Dec", settled: 38, pending: 19 },
+      { label: "Jan-2", settled: 40, pending: 20 },
+      { label: "Feb-2", settled: 42, pending: 21 },
+      { label: "Mar-2", settled: 44, pending: 22 },
     ],
     breakdown: [
       { name: "Settled", value: 76 },
@@ -312,6 +337,25 @@ export default function UserDashboardPage() {
         return acc
       }, {}),
   )
+
+  // Persist chart view selection per card
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const stored = window.localStorage.getItem("user-dashboard-chart-views")
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored) as Record<string, ChartView>
+        setChartViews((prev) => ({ ...prev, ...parsed }))
+      } catch {
+        // ignore parse errors
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    window.localStorage.setItem("user-dashboard-chart-views", JSON.stringify(chartViews))
+  }, [chartViews])
 
   const renderChart = (card: typeof userDashboardCards[number], view: ChartView) => {
     const definition = chartDefinitions[card.chartKey]
@@ -480,36 +524,41 @@ export default function UserDashboardPage() {
           </div>
         </header>
 
-        <section className="p-4 lg:p-6 space-y-5">
-          <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-xs text-slate-600 shadow-sm">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-400">Duration</span>
-            <div className="relative min-w-[200px]">
-              <select
-                value={activeFilter}
-                onChange={(event) => setActiveFilter(event.target.value)}
-                className="w-full appearance-none rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 outline-none focus:border-slate-400 focus:ring-2 focus:ring-emerald-200"
-              >
-                {durationFilters.map((filter) => (
-                  <option key={filter.value} value={filter.value}>
-                    {filter.label}
-                  </option>
-                ))}
-              </select>
-              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
-                ▼
-              </span>
+        <section className="p-3.5 lg:p-4 space-y-3.5">
+          <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200/80 bg-slate-50 px-4 py-3 text-xs text-slate-600 shadow-sm">
+            <div className="flex flex-col">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-500">Overview</span>
+              
             </div>
-            <span className="ml-auto rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-500">
-              Viewing {activeFilter}
-            </span>
+            <div className="ml-auto flex items-center gap-2">
+              <div className="relative">
+                <select
+                  value={activeFilter}
+                  onChange={(event) => setActiveFilter(event.target.value)}
+                  className="h-10 min-w-[190px] appearance-none rounded-full border border-emerald-400/80 bg-white pl-9 pr-8 text-sm font-semibold text-slate-900 shadow-[0_6px_18px_-8px_rgba(16,185,129,0.5)] outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                >
+                  {durationFilters.map((filter) => (
+                    <option key={filter.value} value={filter.value}>
+                      {filter.label}
+                    </option>
+                  ))}
+                </select>
+                <Calendar className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-500" />
+                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">▼</span>
+              </div>
+              <button className="inline-flex h-10 items-center gap-2 rounded-full border border-emerald-300 bg-gradient-to-r from-emerald-50 to-white px-4 text-sm font-semibold text-emerald-700 transition hover:border-emerald-400 hover:from-emerald-100 hover:to-white">
+                <Download className="h-4 w-4" />
+                Download report
+              </button>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
             {summaryTiles.map((tile) => (
               <Card key={tile.label} className="border border-border/50 bg-white/90 shadow-sm">
-                <CardContent className="space-y-1 p-4">
+                <CardContent className="space-y-1 p-2.5">
                   <p className="text-[11px] uppercase tracking-[0.3em] text-slate-400">{tile.label}</p>
-                  <p className="text-2xl font-semibold text-slate-900">{tile.value}</p>
+                  <p className="text-lg font-semibold text-slate-900">{tile.value}</p>
                   <p className="text-xs text-slate-500">{tile.caption}</p>
                   <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-600">
                     {tile.type}
@@ -521,10 +570,10 @@ export default function UserDashboardPage() {
 
           <QuickAccess />
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {userDashboardCards.map((card) => (
               <Card key={card.id} className="border border-border/40 bg-white/80 shadow-lg shadow-slate-900/5">
-                <CardHeader className="space-y-2 pb-1">
+                <CardHeader className="space-y-1 pb-1">
                   <div className="flex items-start justify-between gap-3">
                     <CardTitle className="text-sm font-semibold text-slate-900">{card.title}</CardTitle>
                     <div className="flex items-start gap-2">
@@ -540,16 +589,15 @@ export default function UserDashboardPage() {
                         ))}
                       </select>
                       <div className="text-right text-xs text-slate-500">
-                        <span className="block text-base font-semibold text-slate-900">{card.metric}</span>
+                        <span className="block text-base font-semibold text-slate-900 leading-tight">{card.metric}</span>
                       </div>
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="flex flex-col gap-3">
-                  <div className="h-[220px] w-full">{renderChart(card, chartViews[card.id])}</div>
+                <CardContent className="flex flex-col gap-2">
+                  <div className="h-[180px] w-full">{renderChart(card, chartViews[card.id])}</div>
                   <div className="flex flex-wrap gap-2 text-[11px] text-slate-500">
-                    <span className="rounded-full bg-slate-100 px-3 py-1">Filter: {activeFilter}</span>
-                    <span className="rounded-full bg-slate-100 px-3 py-1">View: {chartViews[card.id]}</span>
+              
                   </div>
                 </CardContent>
               </Card>
