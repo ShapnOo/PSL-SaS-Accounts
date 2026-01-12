@@ -20,6 +20,7 @@ import {
   Settings,
   Shield,
   ShieldCheck,
+  Users,
   X,
 } from "lucide-react"
 
@@ -37,6 +38,7 @@ const STORAGE_KEY = "sidebar-open-items"
 
 const menuItems: MenuItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/" },
+  { icon: Users, label: "User Dashboard", href: "/user-dashboard" },
   {
     icon: Settings,
     label: "Configuration",
