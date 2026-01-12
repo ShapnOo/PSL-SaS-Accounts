@@ -526,34 +526,24 @@ export default function UserDashboardPage() {
               <Card key={card.id} className="border border-border/40 bg-white/80 shadow-lg shadow-slate-900/5">
                 <CardHeader className="space-y-2 pb-1">
                   <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <CardTitle className="text-sm font-semibold text-slate-900">{card.title}</CardTitle>
-                      <p className="text-xs text-slate-500">{card.description}</p>
+                    <CardTitle className="text-sm font-semibold text-slate-900">{card.title}</CardTitle>
+                    <div className="flex items-start gap-2">
+                      <select
+                        value={chartViews[card.id]}
+                        onChange={(event) => setChartViews((prev) => ({ ...prev, [card.id]: event.target.value as ChartView }))}
+                        className="h-8 rounded border border-slate-200 bg-white px-2 text-[11px] text-slate-600"
+                      >
+                        {chartViewOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="text-right text-xs text-slate-500">
+                        <span className="block text-base font-semibold text-slate-900">{card.metric}</span>
+                        <span className="text-[11px] text-slate-500">{card.change}</span>
+                      </div>
                     </div>
-                    <div className="text-right text-xs text-slate-500">
-                      <span className="block text-base font-semibold text-slate-900">{card.metric}</span>
-                      <span className="text-[11px] text-slate-500">{card.change}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-slate-600">
-                    <span className="font-medium text-slate-400">Chart view</span>
-                    <select
-                      value={chartViews[card.id]}
-                      onChange={(event) => setChartViews((prev) => ({ ...prev, [card.id]: event.target.value as ChartView }))}
-                      className="h-8 rounded border border-slate-200 bg-white px-2 text-[11px] text-slate-600"
-                    >
-                      {chartViewOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                    <span
-                      className="ml-auto rounded-full px-2 py-0.5 text-[11px] font-semibold"
-                      style={{ backgroundColor: `${card.accent}1a`, color: card.accent }}
-                    >
-                      Updated {activeFilter.toLowerCase()}
-                    </span>
                   </div>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-3">
