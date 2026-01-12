@@ -21,14 +21,22 @@ import {
 } from "recharts"
 
 import { Sidebar } from "@/components/sidebar"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { QuickAccess } from "@/components/quick-access"
 
 type ChartView = "line" | "bar" | "area" | "pie"
 
-const durationFilters = ["30 Days", "60 Days", "1 Year", "2 Years", "3 Years"]
+const durationFilters = [
+  { label: "Today", value: "Today" },
+  { label: "Last 7 days", value: "Last 7 days" },
+  { label: "Last 14 days", value: "Last 14 days" },
+  { label: "Last 30 days", value: "Last 30 days" },
+  { label: "Last 3 Months", value: "Last 3 Months" },
+  { label: "Last 6 Months", value: "Last 6 Months" },
+  { label: "Last 1 Year", value: "Last 1 Year" },
+]
 const chartViewOptions: { label: string; value: ChartView }[] = [
   { label: "Line Chart", value: "line" },
   { label: "Bar Chart", value: "bar" },
@@ -219,10 +227,37 @@ const chartDefinitions: Record<
 
 const palette = ["#2563eb", "#10b981", "#f59e0b", "#ec4899", "#22d3ee", "#f97316", "#7c3aed"]
 
+const summaryTiles = [
+  {
+    label: "Total Income",
+    value: "BDT 325,450",
+    caption: "This month’s inflow",
+    type: "Income",
+  },
+  {
+    label: "Total Expense",
+    value: "BDT 214,980",
+    caption: "This month’s outflow",
+    type: "Expense",
+  },
+  {
+    label: "Total Account Payable",
+    value: "BDT 98,400",
+    caption: "Due to vendors",
+    type: "Payable",
+  },
+  {
+    label: "Total Account Receivable",
+    value: "BDT 142,300",
+    caption: "Receivable from clients",
+    type: "Receivable",
+  },
+] as const
+
 export default function UserDashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const [activeFilter, setActiveFilter] = useState(durationFilters[0])
+  const [activeFilter, setActiveFilter] = useState(durationFilters[1].value)
   const [chartViews, setChartViews] = useState<Record<string, ChartView>>(
     () =>
       userDashboardCards.reduce<Record<string, ChartView>>((acc, card) => {
@@ -351,28 +386,45 @@ export default function UserDashboardPage() {
         </header>
 
         <section className="p-4 lg:p-6 space-y-5">
-          <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-900 via-slate-900/40 to-slate-800/70 px-4 py-3 text-xs text-white shadow-lg">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-200">Duration filter</span>
-            <div className="flex flex-wrap gap-2">
-              {durationFilters.map((filter) => {
-                const isActive = filter === activeFilter
-                return (
-                  <button
-                    key={filter}
-                    onClick={() => setActiveFilter(filter)}
-                    className={`rounded-full px-3 py-1.5 text-[11px] font-semibold transition ${
-                      isActive ? "bg-white text-slate-900 shadow-xl" : "bg-white/10 text-white hover:bg-white/20"
-                    }`}
-                  >
-                    {filter}
-                  </button>
-                )
-              })}
+          <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-xs text-slate-600 shadow-sm">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-400">Duration</span>
+            <div className="relative min-w-[200px]">
+              <select
+                value={activeFilter}
+                onChange={(event) => setActiveFilter(event.target.value)}
+                className="w-full appearance-none rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 outline-none focus:border-slate-400 focus:ring-2 focus:ring-emerald-200"
+              >
+                {durationFilters.map((filter) => (
+                  <option key={filter.value} value={filter.value}>
+                    {filter.label}
+                  </option>
+                ))}
+              </select>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+                ▼
+              </span>
             </div>
-            <Badge className="ml-auto text-[10px] uppercase tracking-[0.15em]" variant="secondary">
+            <span className="ml-auto rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-500">
               Viewing {activeFilter}
-            </Badge>
+            </span>
           </div>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+            {summaryTiles.map((tile) => (
+              <Card key={tile.label} className="border border-border/50 bg-white/90 shadow-sm">
+                <CardContent className="space-y-1 p-4">
+                  <p className="text-[11px] uppercase tracking-[0.3em] text-slate-400">{tile.label}</p>
+                  <p className="text-2xl font-semibold text-slate-900">{tile.value}</p>
+                  <p className="text-xs text-slate-500">{tile.caption}</p>
+                  <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-600">
+                    {tile.type}
+                  </span>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <QuickAccess />
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {userDashboardCards.map((card) => (

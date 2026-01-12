@@ -147,7 +147,7 @@ const managementCards = [
   },
   {
     id: "financials",
-    title: "Financial Statements",
+    title: "Financial Statements Analysis",
     description: "P&L, balance sheet, and cash flow briefs.",
     metric: "Ready",
     change: "Last refreshed 2h ago",
@@ -492,27 +492,25 @@ export default function ManagementDashboardPage() {
           </div>
         </header>
         <section className="p-4 lg:p-6 space-y-5">
-          <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-900 via-slate-900/40 to-slate-800/70 px-4 py-3 text-xs text-white shadow-lg">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-200">Duration filter</span>
-            <div className="flex flex-wrap gap-2">
-              {durationFilters.map((filter) => {
-                const isActive = filter === activeDuration
-                return (
-                  <button
-                    key={filter}
-                    onClick={() => setActiveDuration(filter)}
-                    className={`rounded-full px-3 py-1.5 text-[11px] font-semibold transition ${
-                      isActive ? "bg-white text-slate-900 shadow-xl" : "bg-white/10 text-white hover:bg-white/20"
-                    }`}
-                  >
+          <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-xs text-slate-600 shadow-sm">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-400">Duration</span>
+            <div className="relative min-w-[200px]">
+              <select
+                value={activeDuration}
+                onChange={(event) => setActiveDuration(event.target.value)}
+                className="w-full appearance-none rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 outline-none focus:border-slate-400 focus:ring-2 focus:ring-emerald-200"
+              >
+                {durationFilters.map((filter) => (
+                  <option key={filter} value={filter} className="text-sm text-slate-800">
                     {filter}
-                  </button>
-                )
-              })}
+                  </option>
+                ))}
+              </select>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">▼</span>
             </div>
-            <Badge className="ml-auto text-[10px] uppercase tracking-[0.15em]" variant="secondary">
+            <span className="ml-auto rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-500">
               Viewing {activeDuration}
-            </Badge>
+            </span>
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
