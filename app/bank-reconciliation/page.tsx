@@ -375,45 +375,45 @@ export default function BankReconciliationPage() {
 
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
             <Card className="border border-border/60 bg-white/95 shadow-sm">
-              <CardContent className="flex items-center justify-between gap-4 p-4">
+              <CardContent className="flex items-center justify-between gap-3 p-3.5">
                 <div>
-                  <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Bank statement</p>
-                  <p className="text-xl font-bold text-slate-900">{formatCurrency(statementBalance)}</p>
-                  <p className="text-xs text-slate-500">As of {filters.statementDate}</p>
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Bank statement</p>
+                  <p className="text-lg font-bold text-slate-900">{formatCurrency(statementBalance)}</p>
+                  <p className="text-[11px] text-slate-500">As of {filters.statementDate}</p>
                 </div>
-                <Banknote className="h-9 w-9 text-emerald-500" />
+                <Banknote className="h-8 w-8 text-emerald-500" />
               </CardContent>
             </Card>
             <Card className="border border-border/60 bg-white/95 shadow-sm">
-              <CardContent className="flex items-center justify-between gap-4 p-4">
+              <CardContent className="flex items-center justify-between gap-3 p-3.5">
                 <div>
-                  <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Ledger balance</p>
-                  <p className="text-xl font-bold text-slate-900">{formatCurrency(ledgerBalance)}</p>
-                  <p className="text-xs text-slate-500">Trial balance</p>
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Ledger balance</p>
+                  <p className="text-lg font-bold text-slate-900">{formatCurrency(ledgerBalance)}</p>
+                  <p className="text-[11px] text-slate-500">Trial balance</p>
                 </div>
-                <Banknote className="h-9 w-9 text-blue-500" />
+                <Banknote className="h-8 w-8 text-blue-500" />
               </CardContent>
             </Card>
             <Card className="border border-border/60 bg-white/95 shadow-sm">
-              <CardContent className="flex items-center justify-between gap-4 p-4">
+              <CardContent className="flex items-center justify-between gap-3 p-3.5">
                 <div>
-                  <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Adjusted bank</p>
-                  <p className="text-xl font-bold text-slate-900">{formatCurrency(totals.adjustedBank)}</p>
-                  <p className="text-xs text-slate-500">Bank + adds - less</p>
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Adjusted bank</p>
+                  <p className="text-lg font-bold text-slate-900">{formatCurrency(totals.adjustedBank)}</p>
+                  <p className="text-[11px] text-slate-500">Bank + adds - less</p>
                 </div>
-                <CheckCircle2 className="h-9 w-9 text-indigo-500" />
+                <CheckCircle2 className="h-8 w-8 text-indigo-500" />
               </CardContent>
             </Card>
             <Card className="border border-border/60 bg-white/95 shadow-sm">
-              <CardContent className="flex items-center justify-between gap-4 p-4">
+              <CardContent className="flex items-center justify-between gap-3 p-3.5">
                 <div>
-                  <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Difference</p>
-                  <p className={`text-xl font-bold ${totals.difference === 0 ? "text-emerald-600" : "text-amber-600"}`}>
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Difference</p>
+                  <p className={`text-lg font-bold ${totals.difference === 0 ? "text-emerald-600" : "text-amber-600"}`}>
                     {formatCurrency(totals.difference)}
                   </p>
-                  <p className="text-xs text-slate-500">Target: 0 to reconcile</p>
+                  <p className="text-[11px] text-slate-500">Target: 0 to reconcile</p>
                 </div>
-                <CheckCircle2 className="h-9 w-9 text-emerald-500" />
+                <CheckCircle2 className="h-8 w-8 text-emerald-500" />
               </CardContent>
             </Card>
           </div>
@@ -439,7 +439,7 @@ export default function BankReconciliationPage() {
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Bank side</p>
             <p className="text-sm text-slate-600">Items that impact the bank statement before the ledger (credit / debit views).</p>
           </div>
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid gap-4 lg:grid-cols-1">
             <SectionTable
               title="Add: Amount received but not yet credited by bank"
               rows={filtered.bankAdds}
@@ -457,7 +457,7 @@ export default function BankReconciliationPage() {
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Book side</p>
             <p className="text-sm text-slate-600">Adjustments captured in the ledger but not yet reflected on the bank statement.</p>
           </div>
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid gap-4 lg:grid-cols-1">
             <SectionTable
               title="Book-side adjustments: receipts not posted"
               rows={filtered.bookAdds}

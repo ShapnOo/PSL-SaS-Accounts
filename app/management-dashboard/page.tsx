@@ -623,8 +623,52 @@ export default function ManagementDashboardPage() {
     const delta = assets - liabilities
     const formatted =
       delta >= 0 ? formatCurrency(delta) : `- ${formatCurrency(Math.abs(delta))}`
-    return { delta, formatted }
+    return { delta, formatted, assets, liabilities, period: latest.label }
   }, [])
+
+  const getChartDefinition = (card: typeof managementCards[number]) => {
+    const definition = managementChartData[card.chartKey]
+    if (card.chartKey !== "profitLoss") {
+      return definition
+    }
+
+    const mappedTrend = definition.trend.map((entry) => {
+      const revenue = typeof entry.revenue === "number" ? entry.revenue : Number(entry.revenue ?? 0)
+      const expense = typeof entry.expense === "number" ? entry.expense : Number(entry.expense ?? 0)
+      const delta = revenue - expense
+      return {
+        label: entry.label,
+        profit: delta >= 0 ? delta : 0,
+        loss: delta < 0 ? Math.abs(delta) : 0,
+      }
+    })
+
+    const profitTotal = mappedTrend.reduce((sum, row) => sum + (row.profit as number), 0)
+    const lossTotal = mappedTrend.reduce((sum, row) => sum + (row.loss as number), 0)
+
+    return {
+      ...definition,
+      trend: mappedTrend,
+      breakdown: [
+        { name: "Profit", value: profitTotal },
+        { name: "Loss", value: lossTotal },
+      ],
+      series: [
+        { key: "profit", label: "Profit", color: "#22c55e" },
+        { key: "loss", label: "Loss", color: "#ef4444" },
+      ],
+    }
+  }
+
+  const getCardValue = (card: typeof managementCards[number]) => {
+    if (card.id === "profit-loss") {
+      return `${profitLossSummary.label} (${profitLossSummary.period}): ${formatCurrency(profitLossSummary.amount)}`
+    }
+    if (card.id === "working-capital") {
+      return workingCapitalSummary.formatted
+    }
+    return card.metric
+  }
 
   // Persist chart view selection per card
   useEffect(() => {
@@ -656,7 +700,7 @@ export default function ManagementDashboardPage() {
   }, [])
 
   const renderChart = (card: typeof managementCards[number], view: ChartView) => {
-    const definition = managementChartData[card.chartKey]
+    const definition = getChartDefinition(card)
     const trend = definition.trend
     const breakdown = definition.breakdown
     const series = definition.series
@@ -783,6 +827,43 @@ export default function ManagementDashboardPage() {
     }
   }
 
+  const renderMeta = (card: typeof managementCards[number]) => {
+    if (card.id === "profit-loss") {
+      const entries = managementChartData.profitLoss.trend
+      const latest = entries[entries.length - 1]
+      const revenue = typeof latest.revenue === "number" ? latest.revenue : Number(latest.revenue ?? 0)
+      const expense = typeof latest.expense === "number" ? latest.expense : Number(latest.expense ?? 0)
+      return (
+        <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-600">
+          <div className="flex items-center justify-between rounded-md border border-slate-100 bg-slate-50/60 px-2 py-1">
+            <span className="font-semibold text-slate-700">Revenue</span>
+            <span className="font-semibold text-emerald-700">{formatCurrency(revenue)}</span>
+          </div>
+          <div className="flex items-center justify-between rounded-md border border-slate-100 bg-slate-50/60 px-2 py-1">
+            <span className="font-semibold text-slate-700">Expense</span>
+            <span className="font-semibold text-rose-700">{formatCurrency(expense)}</span>
+          </div>
+        </div>
+      )
+    }
+
+    if (card.id === "working-capital") {
+      return (
+        <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-600">
+          <div className="flex items-center justify-between rounded-md border border-slate-100 bg-slate-50/60 px-2 py-1">
+            <span className="font-semibold text-slate-700">Current Assets</span>
+            <span className="font-semibold text-blue-700">{formatCurrency(workingCapitalSummary.assets)}</span>
+          </div>
+          <div className="flex items-center justify-between rounded-md border border-slate-100 bg-slate-50/60 px-2 py-1">
+            <span className="font-semibold text-slate-700">Current Liabilities</span>
+            <span className="font-semibold text-amber-700">{formatCurrency(workingCapitalSummary.liabilities)}</span>
+          </div>
+        </div>
+      )
+    }
+    return null
+  }
+
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar
@@ -877,23 +958,23 @@ export default function ManagementDashboardPage() {
             ))}
           </div>
 
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-            {managementCards.map((card) => (
-              <Card key={card.id} className="border border-border/40 bg-white shadow-lg shadow-slate-900/5">
-                <CardHeader className="relative space-y-1 pb-1">
-                  <div className="flex items-center justify-between gap-3">
-                    <CardTitle className="text-sm font-semibold text-slate-900">{card.title}</CardTitle>
-                    <div className="flex items-center gap-3">
-                      <div className="text-right text-xs text-slate-500">
-                        <p className="text-base font-semibold text-slate-900 leading-tight">
-                          {card.id === "profit-loss"
-                            ? `${profitLossSummary.label} (${profitLossSummary.period}): ${formatCurrency(profitLossSummary.amount)}`
-                            : card.id === "working-capital"
-                              ? workingCapitalSummary.formatted
-                            : card.metric}
-                        </p>
-                      </div>
-                      <div className="relative">
+          <div className="overflow-x-auto rounded-xl border border-border/60 bg-white shadow-sm">
+            <table className="min-w-full text-sm">
+              <thead className="bg-slate-50 text-xs text-slate-500 uppercase tracking-[0.14em]">
+                <tr>
+                  <th className="px-3 py-2 text-left">Metric</th>
+                  <th className="px-3 py-2 text-left">Value</th>
+                  <th className="px-3 py-2 text-left">Chart type</th>
+                  <th className="px-3 py-2 text-left">Visualization</th>
+                </tr>
+              </thead>
+              <tbody>
+                {managementCards.map((card) => (
+                  <tr key={card.id} className="border-t border-slate-100">
+                    <td className="px-3 py-3 align-top text-slate-900 font-semibold">{card.title}</td>
+                    <td className="px-3 py-3 align-top text-slate-700">{getCardValue(card)}</td>
+                    <td className="px-3 py-3 align-top">
+                      <div className="relative inline-block">
                         <button
                           className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
                           onClick={() => setSelectorOpen((prev) => (prev === card.id ? "" : card.id))}
@@ -908,26 +989,29 @@ export default function ManagementDashboardPage() {
                                 className={`flex w-full items-center justify-between px-3 py-2 text-[12px] text-slate-700 hover:bg-slate-100 ${
                                   managementChartViews[card.id] === option.value ? "font-semibold text-slate-900" : ""
                                 }`}
-                              onClick={() => {
-                                setManagementChartViews((prev) => ({ ...prev, [card.id]: option.value as ChartView }))
-                                setSelectorOpen("")
-                              }}
-                            >
-                              <span>{option.label}</span>
+                                onClick={() => {
+                                  setManagementChartViews((prev) => ({ ...prev, [card.id]: option.value as ChartView }))
+                                  setSelectorOpen("")
+                                }}
+                              >
+                                <span>{option.label}</span>
                                 {managementChartViews[card.id] === option.value && <Check className="h-4 w-4 text-emerald-600" />}
-                            </button>
-                          ))}
+                              </button>
+                            ))}
                           </div>
                         )}
                       </div>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-2">
-                  <div className="h-[180px] w-full">{renderChart(card, managementChartViews[card.id])}</div>
-                </CardContent>
-              </Card>
-            ))}
+                    </td>
+                    <td className="px-3 py-3">
+                      <div className="h-[180px] w-[380px] min-w-[320px] rounded-lg border border-slate-100 bg-slate-50/60 p-2">
+                        {renderChart(card, managementChartViews[card.id])}
+                        {renderMeta(card)}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </section>
       </main>
