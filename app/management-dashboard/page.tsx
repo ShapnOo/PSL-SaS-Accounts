@@ -36,6 +36,33 @@ const chartViewOptions: { label: string; value: ChartView }[] = [
   { label: "Pie Chart", value: "pie" },
 ]
 
+const summaryTiles = [
+  {
+    label: "Total Income",
+    value: "BDT 325,450",
+    caption: "This month’s inflow",
+    type: "Income",
+  },
+  {
+    label: "Total Expense",
+    value: "BDT 214,980",
+    caption: "This month’s outflow",
+    type: "Expense",
+  },
+  {
+    label: "Total Account Payable",
+    value: "BDT 98,400",
+    caption: "Due to vendors",
+    type: "Payable",
+  },
+  {
+    label: "Total Account Receivable",
+    value: "BDT 142,300",
+    caption: "Receivable from clients",
+    type: "Receivable",
+  },
+] as const
+
 const managementCards = [
   {
     id: "working-capital",
@@ -596,6 +623,21 @@ export default function ManagementDashboardPage() {
           </div>
         </header>
         <section className="p-4 lg:p-6 space-y-5">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+            {summaryTiles.map((tile) => (
+              <Card key={tile.label} className="border border-border/50 bg-white/90 shadow-sm">
+                <CardContent className="space-y-1 p-4">
+                  <p className="text-[11px] uppercase tracking-[0.3em] text-slate-400">{tile.label}</p>
+                  <p className="text-2xl font-semibold text-slate-900">{tile.value}</p>
+                  <p className="text-xs text-slate-500">{tile.caption}</p>
+                  <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-600">
+                    {tile.type}
+                  </span>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
           <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-xs text-slate-600 shadow-sm">
             <span className="text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-400">Duration</span>
             <div className="relative min-w-[200px]">
