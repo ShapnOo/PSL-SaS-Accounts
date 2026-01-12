@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { Bell, Calendar, Download, Filter, Menu, Search } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import { BarChart3, Bell, Calendar, Check, ChevronDown, Download, Menu, Search } from "lucide-react"
 import {
   Area,
   AreaChart,
@@ -40,13 +40,13 @@ const summaryTiles = [
   {
     label: "Total Income",
     value: "BDT 325,450",
-    caption: "This month’s inflow",
+    caption: "This month's inflow",
     type: "Income",
   },
   {
     label: "Total Expense",
     value: "BDT 214,980",
-    caption: "This month’s outflow",
+    caption: "This month's outflow",
     type: "Expense",
   },
   {
@@ -156,7 +156,7 @@ const managementCards = [
   {
     id: "net-worth",
     title: "Net Worth Graph",
-    description: "Owners’ equity evolution.",
+    description: "Owners' equity evolution.",
     metric: "BDT 4.9m",
     change: "Up 11% since Jan",
     accent: "#1d4ed8",
@@ -590,6 +590,7 @@ export default function ManagementDashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [activeDuration, setActiveDuration] = useState(durationFilters[0])
+  const [durationOpen, setDurationOpen] = useState(false)
   const [managementChartViews, setManagementChartViews] = useState<Record<string, ChartView>>(
     () =>
       managementCards.reduce<Record<string, ChartView>>((acc, card) => {
@@ -598,6 +599,7 @@ export default function ManagementDashboardPage() {
       }, {}),
   )
   const [selectorOpen, setSelectorOpen] = useState("")
+  const durationRef = useRef<HTMLDivElement | null>(null)
 
   // Persist chart view selection per card
   useEffect(() => {
@@ -617,6 +619,16 @@ export default function ManagementDashboardPage() {
     if (typeof window === "undefined") return
     window.localStorage.setItem("management-dashboard-chart-views", JSON.stringify(managementChartViews))
   }, [managementChartViews])
+
+  useEffect(() => {
+    const handler = (event: MouseEvent) => {
+      if (durationRef.current && !durationRef.current.contains(event.target as Node)) {
+        setDurationOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handler)
+    return () => document.removeEventListener("mousedown", handler)
+  }, [])
 
   const renderChart = (card: typeof managementCards[number], view: ChartView) => {
     const definition = managementChartData[card.chartKey]
@@ -784,25 +796,44 @@ export default function ManagementDashboardPage() {
           <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200/80 bg-slate-50 px-4 py-3 text-xs text-slate-600 shadow-sm">
             <div className="flex flex-col">
               <span className="text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-500">Overview</span>
-              
+              <p className="text-sm font-semibold text-slate-900">Key performance metrics</p>
             </div>
             <div className="ml-auto flex items-center gap-2">
-              <div className="relative min-w-[190px]">
-                <select
-                  value={activeDuration}
-                  onChange={(event) => setActiveDuration(event.target.value)}
-                  className="h-10 w-full appearance-none rounded-full border border-emerald-400/80 bg-white pl-9 pr-8 text-sm font-semibold text-slate-900 shadow-[0_6px_18px_-8px_rgba(16,185,129,0.5)] outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+              <div className="relative" ref={durationRef}>
+                <button
+                  type="button"
+                  onClick={() => setDurationOpen((prev) => !prev)}
+                  className="flex h-10 min-w-[188px] items-center gap-2 rounded-xl border border-emerald-200 bg-white px-3 text-sm font-semibold text-slate-900 shadow-[0_12px_28px_-16px_rgba(16,185,129,0.55)] transition hover:border-emerald-300 focus:border-emerald-400 focus:outline-none"
                 >
-                  {durationFilters.map((filter) => (
-                    <option key={filter} value={filter} className="text-sm text-slate-800">
-                      {filter}
-                    </option>
-                  ))}
-                </select>
-                <Calendar className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-500" />
-                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">▼</span>
+                  <Calendar className="h-4 w-4 text-emerald-500" />
+                  <span className="flex-1 text-left">{activeDuration}</span>
+                  <ChevronDown className={`h-4 w-4 text-slate-500 transition ${durationOpen ? "rotate-180" : ""}`} />
+                </button>
+                {durationOpen && (
+                  <div className="absolute right-0 top-11 z-20 w-48 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl">
+                    {durationFilters.map((filter) => (
+                      <button
+                        key={filter}
+                        type="button"
+                        className={`flex w-full items-center justify-between px-3 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50 ${
+                          activeDuration === filter ? "bg-emerald-50 font-semibold text-emerald-700" : ""
+                        }`}
+                        onClick={() => {
+                          setActiveDuration(filter)
+                          setDurationOpen(false)
+                        }}
+                      >
+                        <span>{filter}</span>
+                        {activeDuration === filter && <Check className="h-4 w-4 text-emerald-600" />}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-              
+              <button className="inline-flex h-10 items-center gap-2 rounded-xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-white px-4 text-sm font-semibold text-emerald-700 shadow-[0_12px_28px_-16px_rgba(16,185,129,0.45)] transition hover:border-emerald-300 hover:from-emerald-100 hover:to-white">
+                <Download className="h-4 w-4" />
+                Download report
+              </button>
             </div>
           </div>
 
@@ -824,10 +855,10 @@ export default function ManagementDashboardPage() {
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {managementCards.map((card) => (
               <Card key={card.id} className="border border-border/40 bg-white shadow-lg shadow-slate-900/5">
-                <CardHeader className="relative space-y-2 pb-1">
-                  <div className="flex items-start justify-between gap-3">
+                <CardHeader className="relative space-y-1 pb-1">
+                  <div className="flex items-center justify-between gap-3">
                     <CardTitle className="text-sm font-semibold text-slate-900">{card.title}</CardTitle>
-                    <div className="flex items-start gap-2">
+                    <div className="flex items-center gap-3">
                       <div className="text-right text-xs text-slate-500">
                         <p className="text-base font-semibold text-slate-900 leading-tight">{card.metric}</p>
                       </div>
@@ -836,7 +867,7 @@ export default function ManagementDashboardPage() {
                           className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
                           onClick={() => setSelectorOpen((prev) => (prev === card.id ? "" : card.id))}
                         >
-                          <Filter className="h-4 w-4" />
+                          <BarChart3 className="h-4 w-4" />
                         </button>
                         {selectorOpen === card.id && (
                           <div className="absolute right-0 top-9 z-20 w-44 rounded-md border border-slate-200 bg-white py-1 shadow-lg">
@@ -846,15 +877,15 @@ export default function ManagementDashboardPage() {
                                 className={`flex w-full items-center justify-between px-3 py-2 text-[12px] text-slate-700 hover:bg-slate-100 ${
                                   managementChartViews[card.id] === option.value ? "font-semibold text-slate-900" : ""
                                 }`}
-                                onClick={() => {
-                                  setManagementChartViews((prev) => ({ ...prev, [card.id]: option.value as ChartView }))
-                                  setSelectorOpen("")
-                                }}
-                              >
-                                <span>{option.label}</span>
-                                {managementChartViews[card.id] === option.value && <span className="text-emerald-500">●</span>}
-                              </button>
-                            ))}
+                              onClick={() => {
+                                setManagementChartViews((prev) => ({ ...prev, [card.id]: option.value as ChartView }))
+                                setSelectorOpen("")
+                              }}
+                            >
+                              <span>{option.label}</span>
+                                {managementChartViews[card.id] === option.value && <Check className="h-4 w-4 text-emerald-600" />}
+                            </button>
+                          ))}
                           </div>
                         )}
                       </div>
@@ -863,9 +894,6 @@ export default function ManagementDashboardPage() {
                 </CardHeader>
                 <CardContent className="flex flex-col gap-2">
                   <div className="h-[180px] w-full">{renderChart(card, managementChartViews[card.id])}</div>
-                  <div className="flex flex-wrap gap-2 text-[11px] text-slate-500">
-                   
-                  </div>
                 </CardContent>
               </Card>
             ))}

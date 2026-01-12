@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { Bell, Calendar, Download, Filter, Menu, Search } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import { BarChart3, Bell, Calendar, Check, ChevronDown, Download, Menu, Search } from "lucide-react"
 import {
   Area,
   AreaChart,
@@ -303,13 +303,13 @@ const summaryTiles = [
   {
     label: "Total Income",
     value: "BDT 325,450",
-    caption: "This month’s inflow",
+    caption: "This month's inflow",
     type: "Income",
   },
   {
     label: "Total Expense",
     value: "BDT 214,980",
-    caption: "This month’s outflow",
+    caption: "This month's outflow",
     type: "Expense",
   },
   {
@@ -330,6 +330,7 @@ export default function UserDashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [activeFilter, setActiveFilter] = useState(durationFilters[1].value)
+  const [filterOpen, setFilterOpen] = useState(false)
   const [chartViews, setChartViews] = useState<Record<string, ChartView>>(
     () =>
       userDashboardCards.reduce<Record<string, ChartView>>((acc, card) => {
@@ -338,6 +339,7 @@ export default function UserDashboardPage() {
       }, {}),
   )
   const [selectorOpen, setSelectorOpen] = useState("")
+  const filterRef = useRef<HTMLDivElement | null>(null)
 
   // Persist chart view selection per card
   useEffect(() => {
@@ -357,6 +359,16 @@ export default function UserDashboardPage() {
     if (typeof window === "undefined") return
     window.localStorage.setItem("user-dashboard-chart-views", JSON.stringify(chartViews))
   }, [chartViews])
+
+  useEffect(() => {
+    const handler = (event: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        setFilterOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handler)
+    return () => document.removeEventListener("mousedown", handler)
+  }, [])
 
   const renderChart = (card: typeof userDashboardCards[number], view: ChartView) => {
     const definition = chartDefinitions[card.chartKey]
@@ -529,25 +541,41 @@ export default function UserDashboardPage() {
           <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200/80 bg-slate-50 px-4 py-3 text-xs text-slate-600 shadow-sm">
             <div className="flex flex-col">
               <span className="text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-500">Overview</span>
-              
+              <p className="text-sm font-semibold text-slate-900">Key performance metrics</p>
             </div>
             <div className="ml-auto flex items-center gap-2">
-              <div className="relative">
-                <select
-                  value={activeFilter}
-                  onChange={(event) => setActiveFilter(event.target.value)}
-                  className="h-10 min-w-[190px] appearance-none rounded-full border border-emerald-400/80 bg-white pl-9 pr-8 text-sm font-semibold text-slate-900 shadow-[0_6px_18px_-8px_rgba(16,185,129,0.5)] outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+              <div className="relative" ref={filterRef}>
+                <button
+                  type="button"
+                  onClick={() => setFilterOpen((prev) => !prev)}
+                  className="flex h-10 min-w-[188px] items-center gap-2 rounded-xl border border-emerald-200 bg-white px-3 text-sm font-semibold text-slate-900 shadow-[0_12px_28px_-16px_rgba(16,185,129,0.55)] transition hover:border-emerald-300 focus:border-emerald-400 focus:outline-none"
                 >
-                  {durationFilters.map((filter) => (
-                    <option key={filter.value} value={filter.value}>
-                      {filter.label}
-                    </option>
-                  ))}
-                </select>
-                <Calendar className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-500" />
-                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">▼</span>
+                  <Calendar className="h-4 w-4 text-emerald-500" />
+                  <span className="flex-1 text-left">{activeFilter}</span>
+                  <ChevronDown className={`h-4 w-4 text-slate-500 transition ${filterOpen ? "rotate-180" : ""}`} />
+                </button>
+                {filterOpen && (
+                  <div className="absolute right-0 top-11 z-20 w-48 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl">
+                    {durationFilters.map((filter) => (
+                      <button
+                        key={filter.value}
+                        type="button"
+                        className={`flex w-full items-center justify-between px-3 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50 ${
+                          activeFilter === filter.value ? "bg-emerald-50 font-semibold text-emerald-700" : ""
+                        }`}
+                        onClick={() => {
+                          setActiveFilter(filter.value)
+                          setFilterOpen(false)
+                        }}
+                      >
+                        <span>{filter.label}</span>
+                        {activeFilter === filter.value && <Check className="h-4 w-4 text-emerald-600" />}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-              <button className="inline-flex h-10 items-center gap-2 rounded-full border border-emerald-300 bg-gradient-to-r from-emerald-50 to-white px-4 text-sm font-semibold text-emerald-700 transition hover:border-emerald-400 hover:from-emerald-100 hover:to-white">
+              <button className="inline-flex h-10 items-center gap-2 rounded-xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-white px-4 text-sm font-semibold text-emerald-700 shadow-[0_12px_28px_-16px_rgba(16,185,129,0.45)] transition hover:border-emerald-300 hover:from-emerald-100 hover:to-white">
                 <Download className="h-4 w-4" />
                 Download report
               </button>
@@ -575,9 +603,9 @@ export default function UserDashboardPage() {
             {userDashboardCards.map((card) => (
               <Card key={card.id} className="border border-border/40 bg-white/80 shadow-lg shadow-slate-900/5">
                 <CardHeader className="relative space-y-1 pb-1">
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center justify-between gap-3">
                     <CardTitle className="text-sm font-semibold text-slate-900">{card.title}</CardTitle>
-                    <div className="flex items-start gap-2">
+                    <div className="flex items-center gap-2">
                       <div className="text-right text-xs text-slate-500">
                         <span className="block text-base font-semibold text-slate-900 leading-tight">{card.metric}</span>
                       </div>
@@ -586,7 +614,7 @@ export default function UserDashboardPage() {
                           className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
                           onClick={() => setSelectorOpen((prev) => (prev === card.id ? "" : card.id))}
                         >
-                          <Filter className="h-4 w-4" />
+                          <BarChart3 className="h-4 w-4" />
                         </button>
                         {selectorOpen === card.id && (
                           <div className="absolute right-0 top-9 z-20 w-40 rounded-md border border-slate-200 bg-white py-1 shadow-lg">
@@ -596,15 +624,15 @@ export default function UserDashboardPage() {
                                 className={`flex w-full items-center justify-between px-3 py-2 text-[12px] text-slate-700 hover:bg-slate-100 ${
                                   chartViews[card.id] === option.value ? "font-semibold text-slate-900" : ""
                                 }`}
-                                onClick={() => {
-                                  setChartViews((prev) => ({ ...prev, [card.id]: option.value }))
-                                  setSelectorOpen("")
-                                }}
-                              >
-                                <span>{option.label}</span>
-                                {chartViews[card.id] === option.value && <span className="text-emerald-500">●</span>}
-                              </button>
-                            ))}
+                              onClick={() => {
+                                setChartViews((prev) => ({ ...prev, [card.id]: option.value }))
+                                setSelectorOpen("")
+                              }}
+                            >
+                              <span>{option.label}</span>
+                                {chartViews[card.id] === option.value && <Check className="h-4 w-4 text-emerald-600" />}
+                            </button>
+                          ))}
                           </div>
                         )}
                       </div>
@@ -613,9 +641,6 @@ export default function UserDashboardPage() {
                 </CardHeader>
                 <CardContent className="flex flex-col gap-2">
                   <div className="h-[180px] w-full">{renderChart(card, chartViews[card.id])}</div>
-                  <div className="flex flex-wrap gap-2 text-[11px] text-slate-500">
-              
-                  </div>
                 </CardContent>
               </Card>
             ))}
