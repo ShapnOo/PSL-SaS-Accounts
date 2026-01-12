@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { BarChart3, Bell, Calendar, Check, ChevronDown, Download, Menu, Search } from "lucide-react"
 import {
   Area,
@@ -234,8 +234,8 @@ const managementChartData: Record<typeof managementCards[number]["chartKey"], Ch
   },
   workingCapital: {
     series: [
-      { key: "assets", label: "Assets", color: "#2563eb" },
-      { key: "liabilities", label: "Liabilities", color: "#ea580c" },
+      { key: "assets", label: "Current Assets", color: "#2563eb" },
+      { key: "liabilities", label: "Current Liabilities", color: "#ea580c" },
     ],
     trend: [
       { label: "Jan", assets: 62, liabilities: 38 },
@@ -261,8 +261,8 @@ const managementChartData: Record<typeof managementCards[number]["chartKey"], Ch
   },
   profitLoss: {
     series: [
-      { key: "revenue", label: "Revenue", color: "#0ea5e9" },
-      { key: "expense", label: "Expense", color: "#ef4444" },
+      { key: "revenue", label: "Profit", color: "#0ea5e9" },
+      { key: "expense", label: "Loss", color: "#ef4444" },
     ],
     trend: [
       { label: "Jan", revenue: 82, expense: 48 },
@@ -585,6 +585,7 @@ const managementChartData: Record<typeof managementCards[number]["chartKey"], Ch
 }
 
 const palette = ["#2563eb", "#10b981", "#f59e0b", "#ec4899", "#22d3ee", "#f97316", "#7c3aed"]
+const formatCurrency = (value: number) => `BDT ${value.toLocaleString("en-US", { minimumFractionDigits: 0 })}`
 
 export default function ManagementDashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -600,6 +601,30 @@ export default function ManagementDashboardPage() {
   )
   const [selectorOpen, setSelectorOpen] = useState("")
   const durationRef = useRef<HTMLDivElement | null>(null)
+
+  const profitLossSummary = useMemo(() => {
+    const entries = managementChartData.profitLoss.trend
+    const latest = entries[entries.length - 1]
+    const revenue = typeof latest.revenue === "number" ? latest.revenue : Number(latest.revenue ?? 0)
+    const expense = typeof latest.expense === "number" ? latest.expense : Number(latest.expense ?? 0)
+    const delta = revenue - expense
+    return {
+      period: latest.label,
+      label: delta >= 0 ? "Profit" : "Loss",
+      amount: Math.abs(delta),
+    }
+  }, [])
+
+  const workingCapitalSummary = useMemo(() => {
+    const entries = managementChartData.workingCapital.trend
+    const latest = entries[entries.length - 1]
+    const assets = typeof latest.assets === "number" ? latest.assets : Number(latest.assets ?? 0)
+    const liabilities = typeof latest.liabilities === "number" ? latest.liabilities : Number(latest.liabilities ?? 0)
+    const delta = assets - liabilities
+    const formatted =
+      delta >= 0 ? formatCurrency(delta) : `- ${formatCurrency(Math.abs(delta))}`
+    return { delta, formatted }
+  }, [])
 
   // Persist chart view selection per card
   useEffect(() => {
@@ -860,7 +885,13 @@ export default function ManagementDashboardPage() {
                     <CardTitle className="text-sm font-semibold text-slate-900">{card.title}</CardTitle>
                     <div className="flex items-center gap-3">
                       <div className="text-right text-xs text-slate-500">
-                        <p className="text-base font-semibold text-slate-900 leading-tight">{card.metric}</p>
+                        <p className="text-base font-semibold text-slate-900 leading-tight">
+                          {card.id === "profit-loss"
+                            ? `${profitLossSummary.label} (${profitLossSummary.period}): ${formatCurrency(profitLossSummary.amount)}`
+                            : card.id === "working-capital"
+                              ? workingCapitalSummary.formatted
+                            : card.metric}
+                        </p>
                       </div>
                       <div className="relative">
                         <button
