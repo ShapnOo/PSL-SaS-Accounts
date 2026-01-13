@@ -186,54 +186,54 @@ export default function BalanceSheetPage() {
                       <Input className="h-8 w-48 pl-8 text-xs" placeholder="Search accounts..." />
                     </div>
                   </div>
-                  <table className="min-w-full text-xs">
-                    <thead className="bg-slate-50 text-slate-600">
-                      <tr>
-                        <th className="px-3 py-2 text-left">Accounts Head</th>
-                        <th className="px-3 py-2 text-right">Amount</th>
-                        <th className="px-3 py-2 text-right">Amount</th>
-                        <th className="px-3 py-2 text-right">Total Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {structured.map((item, idx) => {
-                        if (item.kind === "section") {
+                    <table className="min-w-full text-xs">
+                      <thead className="bg-slate-50 text-slate-600">
+                        <tr>
+                          <th className="px-3 py-2 text-left">Accounts Head</th>
+                          <th className="px-3 py-2 text-right">Amount</th>
+                          <th className="px-3 py-2 text-right">Amount</th>
+                          <th className="px-3 py-2 text-right">Total Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {structured.map((item, idx) => {
+                          if (item.kind === "section") {
+                            return (
+                              <tr key={item.label + idx} className="bg-slate-100 text-slate-800 font-semibold">
+                                <td className="px-3 py-2">{item.label}</td>
+                                <td className="px-3 py-2 text-right" />
+                                <td className="px-3 py-2 text-right" />
+                                <td className="px-3 py-2 text-right">{formatAmt(0)}</td>
+                              </tr>
+                            )
+                          }
+                          if (item.kind === "total" || item.kind === "highlight") {
+                            const className =
+                              item.kind === "highlight"
+                                ? "border-t bg-emerald-50 font-semibold text-emerald-900"
+                                : "border-t bg-slate-50 font-semibold text-slate-900"
+                            return (
+                              <tr key={item.label + idx} className={className}>
+                                <td className="px-3 py-2">{item.label}</td>
+                                <td className="px-3 py-2 text-right" />
+                                <td className="px-3 py-2 text-right" />
+                                <td className="px-3 py-2 text-right">{formatAmt(item.amount)}</td>
+                              </tr>
+                            )
+                          }
                           return (
-                            <tr key={item.label + idx} className="bg-slate-100 text-slate-800 font-semibold">
-                              <td className="px-3 py-2">{item.label}</td>
-                              <td className="px-3 py-2 text-right" />
-                              <td className="px-3 py-2 text-right" />
-                              <td className="px-3 py-2 text-right" />
+                            <tr key={item.label + idx} className="border-t">
+                              <td className="px-3 py-2 text-blue-700 font-semibold underline underline-offset-2" style={{ paddingLeft: `${(item.depth ?? 0) * 16}px` }}>
+                                {item.label}
+                              </td>
+                              <td className="px-3 py-2 text-right text-slate-900">{formatAmt(item.amount)}</td>
+                              <td className="px-3 py-2 text-right text-slate-900" />
+                              <td className="px-3 py-2 text-right text-slate-900" />
                             </tr>
                           )
-                        }
-                        if (item.kind === "total" || item.kind === "highlight") {
-                          const className =
-                            item.kind === "highlight"
-                              ? "border-t bg-emerald-50 font-semibold text-emerald-900"
-                              : "border-t bg-slate-50 font-semibold text-slate-900"
-                          return (
-                            <tr key={item.label + idx} className={className}>
-                              <td className="px-3 py-2">{item.label}</td>
-                              <td className="px-3 py-2 text-right">{formatAmt(item.amount)}</td>
-                              <td className="px-3 py-2 text-right">{formatAmt(item.amount)}</td>
-                              <td className="px-3 py-2 text-right">{formatAmt(item.amount)}</td>
-                            </tr>
-                          )
-                        }
-                        return (
-                          <tr key={item.label + idx} className="border-t">
-                            <td className="px-3 py-2 text-slate-700" style={{ paddingLeft: `${(item.depth ?? 0) * 16}px` }}>
-                              {item.label}
-                            </td>
-                            <td className="px-3 py-2 text-right text-slate-900">{formatAmt(item.amount)}</td>
-                            <td className="px-3 py-2 text-right text-slate-900">{formatAmt(item.amount)}</td>
-                            <td className="px-3 py-2 text-right text-slate-900">{formatAmt(item.amount)}</td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
+                        })}
+                      </tbody>
+                    </table>
                 </div>
               )}
             </CardContent>
