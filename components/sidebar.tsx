@@ -12,7 +12,7 @@ import {
   ChevronRight,
   CreditCard,
   FileSearch,
-  FileText,
+  FilePieChart,
   Landmark,
   LayoutDashboard,
   Plug,
@@ -96,6 +96,21 @@ const menuItems: MenuItem[] = [
     ],
   },
   {
+    icon: FilePieChart,
+    label: "Reports",
+    children: [
+      { label: "Daybook", href: "/reports/daybook" },
+      { label: "General Ledger", href: "/reports/general-ledger" },
+      { label: "Trial Balance", href: "/reports/trial-balance" },
+      { label: "Income Statement", href: "/reports/income-statement" },
+      { label: "Cost Center wise income statement", href: "/reports/cost-center-income" },
+      { label: "Balance Sheet", href: "/reports/balance-sheet" },
+      { label: "Cash Flow Statement", href: "/reports/cash-flow" },
+      { label: "Cashbook", href: "/reports/cashbook" },
+      { label: "Receipt and Payment Statement Report", href: "/reports/receipt-payment" },
+    ],
+  },
+  {
     icon: ShieldCheck,
     label: "Administration",
     children: [
@@ -109,7 +124,6 @@ const menuItems: MenuItem[] = [
       { label: "Security Policies", href: "/administration/security-policies" },
     ],
   },
-  { icon: FileText, label: "Reports" },
 ]
 
 export function Sidebar({ open, collapsed, onClose, onToggleCollapse }: SidebarProps) {

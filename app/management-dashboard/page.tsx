@@ -958,23 +958,17 @@ export default function ManagementDashboardPage() {
             ))}
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-border/60 bg-white shadow-sm">
-            <table className="min-w-full text-sm">
-              <thead className="bg-slate-50 text-xs text-slate-500 uppercase tracking-[0.14em]">
-                <tr>
-                  <th className="px-3 py-2 text-left">Metric</th>
-                  <th className="px-3 py-2 text-left">Value</th>
-                  <th className="px-3 py-2 text-left">Chart type</th>
-                  <th className="px-3 py-2 text-left">Visualization</th>
-                </tr>
-              </thead>
-              <tbody>
-                {managementCards.map((card) => (
-                  <tr key={card.id} className="border-t border-slate-100">
-                    <td className="px-3 py-3 align-top text-slate-900 font-semibold">{card.title}</td>
-                    <td className="px-3 py-3 align-top text-slate-700">{getCardValue(card)}</td>
-                    <td className="px-3 py-3 align-top">
-                      <div className="relative inline-block">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            {managementCards.map((card) => (
+              <Card key={card.id} className="border border-border/40 bg-white shadow-lg shadow-slate-900/5">
+                <CardHeader className="relative space-y-1 pb-1">
+                  <div className="flex items-center justify-between gap-3">
+                    <CardTitle className="text-sm font-semibold text-slate-900">{card.title}</CardTitle>
+                    <div className="flex items-center gap-3">
+                      <div className="text-right text-xs text-slate-500">
+                        <p className="text-base font-semibold text-slate-900 leading-tight">{getCardValue(card)}</p>
+                      </div>
+                      <div className="relative">
                         <button
                           className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
                           onClick={() => setSelectorOpen((prev) => (prev === card.id ? "" : card.id))}
@@ -1001,17 +995,15 @@ export default function ManagementDashboardPage() {
                           </div>
                         )}
                       </div>
-                    </td>
-                    <td className="px-3 py-3">
-                      <div className="h-[180px] w-[380px] min-w-[320px] rounded-lg border border-slate-100 bg-slate-50/60 p-2">
-                        {renderChart(card, managementChartViews[card.id])}
-                        {renderMeta(card)}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-2">
+                  <div className="h-[180px] w-full">{renderChart(card, managementChartViews[card.id])}</div>
+                  {renderMeta(card)}
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </section>
       </main>

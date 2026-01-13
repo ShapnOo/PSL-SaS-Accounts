@@ -90,6 +90,24 @@ export default function BankReconciliationPage() {
     return { addSum, lessSum, bookAddSum, bookLessSum, adjustedBank, adjustedBook, difference }
   }, [bankAdds, bankLess, bookAdds, bookLess])
 
+  const loadRecords = () => {
+    setBankAdds(initialAdds)
+    setBankLess(initialLess)
+    setBookAdds(initialBookAdds)
+    setBookLess(initialBookLess)
+    setFilters((prev) => ({
+      ...prev,
+      glCode: glOptions[0].code,
+    }))
+  }
+
+  const toggleById = (id: string) => {
+    if (bankAdds.some((r) => r.id === id)) return setBankAdds((list) => list.map((row) => (row.id === id ? { ...row, status: row.status === "cleared" ? "pending" : "cleared" } : row)))
+    if (bankLess.some((r) => r.id === id)) return setBankLess((list) => list.map((row) => (row.id === id ? { ...row, status: row.status === "cleared" ? "pending" : "cleared" } : row)))
+    if (bookAdds.some((r) => r.id === id)) return setBookAdds((list) => list.map((row) => (row.id === id ? { ...row, status: row.status === "cleared" ? "pending" : "cleared" } : row)))
+    if (bookLess.some((r) => r.id === id)) return setBookLess((list) => list.map((row) => (row.id === id ? { ...row, status: row.status === "cleared" ? "pending" : "cleared" } : row)))
+  }
+
   const filtered = useMemo(() => {
     if (!filters.search.trim()) {
       return { bankAdds, bankLess, bookAdds, bookLess }
@@ -107,16 +125,15 @@ export default function BankReconciliationPage() {
     }
   }, [bankAdds, bankLess, bookAdds, bookLess, filters.search])
 
-  const loadRecords = () => {
-    setBankAdds(initialAdds)
-    setBankLess(initialLess)
-    setBookAdds(initialBookAdds)
-    setBookLess(initialBookLess)
-    setFilters((prev) => ({
-      ...prev,
-      glCode: glOptions[0].code,
-    }))
-  }
+  const combinedRows = useMemo(() => {
+    const annotate = (rows: RecoRow[], bucket: string) => rows.map((row) => ({ ...row, bucket }))
+    return [
+      ...annotate(filtered.bankAdds, "Add: Amount received but not yet credited by bank"),
+      ...annotate(filtered.bankLess, "Less: Un-presented cheques"),
+      ...annotate(filtered.bookAdds, "Add: Book-side receipts not posted"),
+      ...annotate(filtered.bookLess, "Less: Book-side charges/payments"),
+    ]
+  }, [filtered])
 
   const SearchableSelect = ({
     label,
@@ -192,7 +209,7 @@ export default function BankReconciliationPage() {
     showCheque = false,
   }: {
     title: string
-    rows: RecoRow[]
+    rows: (RecoRow & { bucket: string })[]
     onToggle: (id: string) => void
     showCheque?: boolean
   }) => (
@@ -205,6 +222,7 @@ export default function BankReconciliationPage() {
           <table className="min-w-full text-xs">
             <thead className="bg-slate-50 text-slate-500">
               <tr>
+                <th className="px-3 py-2 text-left">Bucket</th>
                 <th className="px-3 py-2 text-left">Ref</th>
                 <th className="px-3 py-2 text-left">Date</th>
                 <th className="px-3 py-2 text-left">Particulars</th>
@@ -218,13 +236,14 @@ export default function BankReconciliationPage() {
             <tbody>
               {rows.length === 0 ? (
                 <tr className="border-t border-slate-100">
-                  <td colSpan={showCheque ? 8 : 7} className="px-3 py-3 text-center text-slate-500">
+                  <td colSpan={showCheque ? 9 : 8} className="px-3 py-3 text-center text-slate-500">
                     No records yet. Click Load records to populate demo data.
                   </td>
                 </tr>
               ) : (
                 rows.map((row) => (
                   <tr key={row.id} className="border-t border-slate-100">
+                    <td className="px-3 py-2 text-slate-700">{row.bucket}</td>
                     <td className="px-3 py-2 font-semibold text-slate-900">{row.ref}</td>
                     <td className="px-3 py-2 text-slate-700">{row.date}</td>
                     <td className="px-3 py-2 text-slate-700">{row.particulars}</td>
@@ -262,7 +281,7 @@ export default function BankReconciliationPage() {
             </tbody>
             <tfoot className="bg-slate-50 text-slate-900">
               <tr>
-                <td colSpan={showCheque ? 4 : 3} className="px-3 py-2 text-right font-semibold">
+                <td colSpan={showCheque ? 5 : 4} className="px-3 py-2 text-right font-semibold">
                   Total
                 </td>
                 <td className="px-3 py-2 text-right font-semibold text-amber-700">
@@ -435,40 +454,7 @@ export default function BankReconciliationPage() {
             </CardContent>
           </Card>
 
-          <div className="flex flex-col gap-1">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Bank side</p>
-            <p className="text-sm text-slate-600">Items that impact the bank statement before the ledger (credit / debit views).</p>
-          </div>
-          <div className="grid gap-4 lg:grid-cols-1">
-            <SectionTable
-              title="Add: Amount received but not yet credited by bank"
-              rows={filtered.bankAdds}
-              onToggle={(id) => toggleStatus(bankAdds, setBankAdds, id)}
-            />
-            <SectionTable
-              title="Less: Un-presented cheques"
-              rows={filtered.bankLess}
-              onToggle={(id) => toggleStatus(bankLess, setBankLess, id)}
-              showCheque
-            />
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Book side</p>
-            <p className="text-sm text-slate-600">Adjustments captured in the ledger but not yet reflected on the bank statement.</p>
-          </div>
-          <div className="grid gap-4 lg:grid-cols-1">
-            <SectionTable
-              title="Book-side adjustments: receipts not posted"
-              rows={filtered.bookAdds}
-              onToggle={(id) => toggleStatus(bookAdds, setBookAdds, id)}
-            />
-            <SectionTable
-              title="Book-side adjustments: charges / payments"
-              rows={filtered.bookLess}
-              onToggle={(id) => toggleStatus(bookLess, setBookLess, id)}
-            />
-          </div>
+          <SectionTable title="Reconciliation items" rows={combinedRows} onToggle={toggleById} showCheque />
 
           <Card className="border border-border/70 bg-white/95 shadow-sm">
             <CardHeader className="pb-3">
