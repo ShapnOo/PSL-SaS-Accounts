@@ -1,12 +1,15 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Calendar, Download, Menu, Printer } from "lucide-react"
+import { Download, Menu, Printer } from "lucide-react"
 
 import { Sidebar } from "@/components/sidebar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 const invoice = {
   number: "INV-000011",
@@ -81,17 +84,42 @@ export default function InvoiceViewPage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-sm">Basic Details</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <InfoItem label="Client" value={invoice.client} />
-                <InfoItem label="Invoice Number" value={invoice.number} />
-                <InfoItem label="Quote Date" value={invoice.quoteDate} icon />
-                <InfoItem label="Due Date" value={invoice.dueDate} icon />
-                <InfoItem label="Status" value={invoice.status} />
-                <InfoItem label="Currency" value={invoice.currency} />
-                <InfoItem label="Payment QR Code" value={invoice.paymentQr} />
-                <InfoItem label="Recurring" value={invoice.recurring ? "Yes" : "No"} />
-                <InfoItem label="Discount Type" value={`${invoice.discountValue}% (${invoice.discountType})`} />
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <ReadOnlyField label="Client" value={invoice.client} />
+                <ReadOnlyField label="Invoice Number" value={invoice.number} />
+                <ReadOnlyField label="Quote Date" value={invoice.quoteDate} />
+                <ReadOnlyField label="Due Date" value={invoice.dueDate} />
+                <div className="space-y-2">
+                  <Label className="text-xs text-slate-600">Status</Label>
+                  <Select value={invoice.status} disabled>
+                    <SelectTrigger className="h-10 text-sm bg-slate-50">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Draft">Draft</SelectItem>
+                      <SelectItem value="Unpaid">Unpaid</SelectItem>
+                      <SelectItem value="Partially Paid">Partially Paid</SelectItem>
+                      <SelectItem value="Paid">Paid</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs text-slate-600">Currency</Label>
+                  <Select value={invoice.currency} disabled>
+                    <SelectTrigger className="h-10 text-sm bg-slate-50">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="USD">USD</SelectItem>
+                      <SelectItem value="EUR">EUR</SelectItem>
+                      <SelectItem value="GBP">GBP</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <ReadOnlyField label="Payment QR Code" value={invoice.paymentQr} />
+                <ReadOnlyField label="Recurring" value={invoice.recurring ? "Yes" : "No"} />
+                <ReadOnlyField label="Discount Type" value={`${invoice.discountValue}% (${invoice.discountType})`} />
               </div>
             </CardContent>
           </Card>
@@ -156,9 +184,9 @@ export default function InvoiceViewPage() {
               </div>
               <div className="space-y-2">
                 <p className="text-xs text-slate-600">Notes & Terms</p>
-                <p className="rounded-lg border border-slate-200 bg-slate-50/60 p-3 text-slate-700">
+                <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-3 text-slate-700 min-h-[100px]">
                   {invoice.notes}
-                </p>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -168,14 +196,11 @@ export default function InvoiceViewPage() {
   )
 }
 
-function InfoItem({ label, value, icon = false }: { label: string; value: string; icon?: boolean }) {
+function ReadOnlyField({ label, value }: { label: string; value: string }) {
   return (
-    <div className="space-y-1">
-      <p className="text-[11px] uppercase tracking-[0.12em] text-slate-500">{label}</p>
-      <p className="flex items-center gap-1 text-sm font-semibold text-slate-900">
-        {icon && <Calendar className="h-4 w-4 text-slate-400" />}
-        {value}
-      </p>
+    <div className="space-y-2">
+      <Label className="text-xs text-slate-600">{label}</Label>
+      <Input value={value} readOnly className="h-10 text-sm bg-slate-50" />
     </div>
   )
 }
